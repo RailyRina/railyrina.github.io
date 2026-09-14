@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Add to favourites — microinteraction</title>
+<style>
+  :root{ --stage:#141414 }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:var(--stage);min-height:100vh;display:flex;align-items:center;justify-content:center;
+       font-family:'PP Neue Montreal','Inter',system-ui,sans-serif;color:#fff}
+
+  /* 518x536 artboard — the button sits at (207,216) at 105px, exactly as in Figma */
+  .stage{position:relative;width:518px;height:536px;flex:none;user-select:none;overflow:hidden;
+         border-radius:8px;background:#141414}
+
+  .cap-btn{position:absolute;left:207px;top:216px;width:105px;height:105px;
+           border:0;padding:0;background:none;cursor:pointer;perspective:620px}
+
+  /* Nesting matters here. Measuring the storyboard, the disc's narrow phase is a strictly
+     VERTICAL ellipse — so the turn happens about a screen-vertical axis and stays there.
+     What actually spins is the artwork inside (+ leans over into an X, then the star
+     unwinds). So: .flipper (rotateY) on the outside, .spin (rotate) within each face.
+     .stretch sits outermost for the slight squash-and-stretch along that vertical axis. */
+  .stretch{width:100%;height:100%}
+  .flipper{position:relative;width:100%;height:100%;transform-style:preserve-3d;
+           transform:rotateY(0deg)}
+  .cap-btn.on .flipper{transform:rotateY(180deg)}
+
+  .face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden}
+  .spin{width:100%;height:100%}
+  .face svg,.face img{display:block;width:100%;height:100%}
+  .back{transform:rotateY(180deg)}
+
+  /* ---------- the turn ----------
+     Storyboard frames measured out of Figma: the piece squashes to edge-on while spinning
+     out to -75°, swaps face, then unwinds back to upright as the cap. rotateY is a smooth
+     0->180; the character lives in the wobble below. */
+  @keyframes flipOn { from{transform:rotateY(0deg)}   to{transform:rotateY(180deg)} }
+  @keyframes flipOff{ from{transform:rotateY(180deg)} to{transform:rotateY(360deg)} }
+
+  /* The artwork leans out to -75° by the halfway point and unwinds — measured straight off
+     the storyboard's eight frames (0,-27,-66,-75 on the plus, then -71,-54,-31,-15 on the
+     cap), which is one continuous swing, so both faces share it. */
+  @keyframes spin{
+    0%  {transform:rotate(0deg)}
+    28% {transform:rotate(-30deg)}
+    40% {transform:rotate(-68deg)}
+    50% {transform:rotate(-75deg)}
+    60% {transform:rotate(-70deg)}
+    72% {transform:rotate(-52deg)}
+    84% {transform:rotate(-28deg)}
+    100%{transform:rotate(0deg)}
+  }
+
+  /* The ellipse keeps its full height as it narrows — a touch of stretch sells that. */
+  @keyframes stretch{
+    0%{transform:scaleY(1)} 30%{transform:scaleY(1.05)} 50%{transform:scaleY(1.03)}
+    72%{transform:scaleY(1.01)} 100%{transform:scaleY(1)}
+  }
+
+  .cap-btn.to-on  .flipper{animation:flipOn  .72s cubic-bezier(.5,0,.4,1) forwards}
+  .cap-btn.to-off .flipper{animation:flipOff .72s cubic-bezier(.5,0,.4,1) forwards}
+  .cap-btn.to-on .spin,.cap-btn.to-off .spin{animation:spin .72s ease-in-out}
+  .cap-btn.to-on .stretch,.cap-btn.to-off .stretch{animation:stretch .72s ease-in-out}
+
+  .hint{position:absolute;left:0;right:0;top:352px;text-align:center;font-size:14px;color:#5f5f5f;
+        transition:opacity .3s}
+  .cap-btn.on ~ .hint{opacity:0}
+</style>
+</head>
+<body>
+
+<div class="stage" id="stage">
+  <button class="cap-btn" id="capBtn" aria-label="Add to favourites" aria-pressed="false">
+    <div class="stretch">
+      <div class="flipper">
+        <div class="face front">
+          <div class="spin">
+            <svg viewBox="0 0 105 105" fill="none">
+              <rect width="105" height="105" rx="52.5" fill="white"/>
+              <path d="M53 38V68M38 53H68" stroke="black" stroke-width="2.8125" stroke-linecap="round"/>
+            </svg>
+          </div>
+        </div>
+        <div class="face back">
+          <div class="spin"><img src="assets/cap/cap.svg" alt=""></div>
+        </div>
+      </div>
+    </div>
+  </button>
+
+  <div class="hint">tap to add</div>
+</div>
+
+<script>
+  const btn = document.getElementById('capBtn');
+  let playing = false;
+
+  btn.addEventListener('click', () => {
+    if (playing) return;                       // ignore clicks mid-turn
+    playing = true;
+    const goingOn = !btn.classList.contains('on');
+    btn.classList.add(goingOn ? 'to-on' : 'to-off');
+
+    // The flipper's animation is the long pole — settle state when it finishes.
+    btn.querySelector('.flipper').addEventListener('animationend', () => {
+      btn.classList.remove('to-on', 'to-off');
+      btn.classList.toggle('on', goingOn);
+      btn.setAttribute('aria-pressed', String(goingOn));
+      playing = false;
+    }, { once: true });
+  });
+</script>
+</body>
+</html>

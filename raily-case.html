@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Raily — Restaurant management system</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F0F0F0;
+    --card:#EAEAEA;
+    --ink:#000;
+    --gray:#5E5E5E;
+    --line:#E3E3E1;
+    --radius:8px;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:'PP Neue Montreal','Neue Montreal','Inter',system-ui,sans-serif;
+    background:var(--bg);color:var(--ink);
+    font-size:16px;line-height:1.4;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{color:inherit;text-decoration:none}
+  a:hover{text-decoration:underline}
+  img{display:block}
+
+  .frame{width:1440px;margin:0 auto;position:relative;background:var(--bg)}
+  /* 1920x1080: scale the whole 1440 canvas as one piece — the same 1.2 the home page uses,
+     which lands the column at 1728 wide with an even 96px either side. */
+  @media (min-width:1800px){ body{zoom:1.2} }
+
+  /* ---------- header over hero ---------- */
+  /* ---------- hero ----------
+     Same treatment as the card on the home page — the tint runs edge to edge, the mockup
+     sits on it as a transparent PNG so it can be placed freely. Figures are on the 1440
+     canvas: the menu ends at 62; the mockup is 760 wide (472 tall) with 100 clear above
+     it from the menu and 100 below it to the band's edge. body zoom scales it at 1920. */
+  .hero{background:#ddeaff}
+  .hero-in{position:relative;width:1440px;height:734px;margin:0 auto}
+  .hero-in>img{position:absolute;left:50%;top:162px;width:760px;height:auto;transform:translateX(-50%)}
+  /* ---------- site menu — same markup, metrics and behaviour as the home page ---------- */
+  .topbar{position:fixed;top:0;left:0;right:0;z-index:60;padding:40px 0 18px;
+          pointer-events:none;transition:background .35s ease}
+  /* transparent over the hero image, exactly as on the home page; once the page scrolls
+     past it the bar takes the paper colour so body copy doesn't run under bare text */
+  body.scrolled .topbar{background:var(--bg)}
+  .topbar .inner{width:1440px;margin:0 auto;padding:0 60px;display:flex;
+                 justify-content:space-between;align-items:center;pointer-events:auto}
+  .topbar a{font-size:16px;font-weight:500;line-height:22px;color:var(--ink);
+            text-decoration:none;transition:color .45s ease}
+  .topbar a:hover{text-decoration:none}
+  .topbar .links{display:flex;gap:24px}
+  .topbar .links a{position:relative}
+  .topbar .links a::after{content:'';position:absolute;left:0;right:0;bottom:-2px;height:1px;
+                          background:currentColor;transform:scaleX(0);transform-origin:left;
+                          transition:transform .25s ease}
+  .topbar .links a:hover::after{transform:scaleX(1)}
+  
+  /* ---------- content grid ---------- */
+  .content{position:relative;padding:73px 0 234px}
+  .guides{position:absolute;inset:0;pointer-events:none}
+  .guides i{position:absolute;top:0;bottom:0;width:1px;background:var(--line)}
+  .cols{position:relative;display:flex}
+  .sidebar{width:204px;margin-left:64px;flex:none}
+  .main{width:984px;margin-left:124px;flex:none}
+
+  /* ---------- sidebar ---------- */
+  .back{font-size:20px;display:inline-block}
+  .sidenav{margin-top:133px;position:sticky;top:40px;display:flex;flex-direction:column;gap:8px}
+  .sidenav a{line-height:18px}
+
+  /* ---------- typography ---------- */
+  h1{font-size:40px;font-weight:400;line-height:44px;max-width:761px}
+  .intro{margin-top:40px;max-width:655px}
+  h2{font-size:32px;font-weight:400;line-height:1.25;margin-top:8px}
+  .label{font-size:16px;letter-spacing:.02em}
+  section{scroll-margin-top:40px}
+
+  .meta{display:flex;margin-top:52px}
+  .meta>div{width:288px;margin-right:40px}
+  .meta>div:last-child{width:328px;margin-right:0}
+  .meta .k{color:var(--gray)}
+  .meta .v{margin-top:12px;display:flex;flex-direction:column;gap:8px}
+
+  /* ---------- cards ---------- */
+  .card{background:var(--card);border-radius:var(--radius)}
+  .problem-card{margin-top:52px;width:984px;padding:32px}
+  .problem-card h2{max-width:733px}
+  .problem-card p{margin-top:40px;max-width:881px}
+
+  .sect{margin-top:52px}
+  .sect>p{margin-top:20px;max-width:731px}
+  .photos{margin-top:56px;display:flex;gap:48px}
+  .photos img{width:280px;height:266px;object-fit:cover}
+
+  .sublabel{margin-top:52px}
+  .carousel{margin-top:38px;width:820px;height:700px;position:relative;padding:40px}
+  .carousel .hyp{font-size:16px}
+  .carousel .shot{position:absolute;left:50%;top:74px;transform:translateX(-50%);height:482px;width:auto}
+  .carousel .shot,.carousel .cap,.carousel .hyp{transition:opacity .22s ease}
+  .carousel.switching .shot,.carousel.switching .cap,.carousel.switching .hyp{opacity:0}
+  .car-btn{position:absolute;top:50%;transform:translateY(-50%);width:44px;height:44px;border-radius:50%;
+           background:#fff;border:0;cursor:pointer;display:flex;align-items:center;justify-content:center}
+  .car-btn svg{width:16px;height:16px;stroke:#000;stroke-width:1.6;fill:none}
+  .car-btn.prev{left:40px}
+  .car-btn.next{right:40px}
+  /* caption pinned to one spot on every slide, sized to wrap into exactly two lines */
+  .carousel .cap{position:absolute;left:40px;top:614px;max-width:700px;line-height:22px}
+
+  .solution-intro{margin-top:52px;max-width:611px}
+  .solution-card{margin-top:40px;width:820px;height:562px;display:flex;align-items:center;justify-content:center}
+  /* live prototype embed: 830x830 iframe scaled down so the 375x812 phone reads ~218x471,
+     with room for the landscape editor (812x375) at the same scale */
+  .proto-wrap{width:493px;height:482px;overflow:hidden;flex:none}
+  .proto-wrap iframe{width:830px;height:812px;border:0;transform:scale(0.5936);transform-origin:0 0;display:block}   /* 812 * .5936 = 482, as in Figma 89:15778 */
+  .solution-note{margin-top:40px;max-width:777px}
+  .solution-note p+p{margin-top:0}
+
+  .results{margin-top:52px}
+  .cards3{margin-top:29px;display:flex;gap:48px}
+  .rcard{width:280px;height:255px;background:#fff;border-radius:var(--radius);padding:32px;position:relative}
+  .rcard img{width:52px;height:52px}
+  .rcard .t{position:absolute;left:32px;bottom:32px;font-size:24px;line-height:26px;max-width:216px}
+
+  .learnings{margin-top:52px}
+  .lcols{margin-top:20px;display:flex;gap:48px}
+  .lcols>div{width:280px}
+  .lcols p+p{margin-top:0}
+  /* ---------- footer ----------
+     Same footer as the home page. There the left column is taken by the docked name and
+     index; here nothing is fixed, so the name sits in that column itself, with a way back. */
+  .footer{position:relative;width:1440px;height:628px;margin:0 auto;
+          border-top:1px solid var(--line)}
+  .footer .who{position:absolute;left:64px;top:166px;width:204px;font-size:20px;line-height:22px}
+  .footer .who i{font-family:'PP Editorial Old','Times New Roman',Georgia,serif;font-style:italic}
+  .footer .all{position:absolute;left:64px;top:262px;font-size:16px;line-height:18px}
+  .footer .ask{position:absolute;left:392px;top:166px;width:416px;margin:0;   /* page h2 carries a margin */
+               font-size:40px;line-height:44px;font-weight:500;letter-spacing:-.01em}
+  .footer .say{position:absolute;left:392px;top:254px;font-family:'PP Editorial Old','Times New Roman',Georgia,serif;
+               font-style:italic;font-size:40px;line-height:44px}
+  .footer .mail{position:absolute;left:392px;top:369px;font-size:32px;line-height:34px;letter-spacing:-.01em;
+                border-bottom:1px solid currentColor;padding-bottom:2px;transition:opacity .2s ease}
+  .footer .mail:hover{opacity:.55;text-decoration:none}
+  .footer .social{position:absolute;left:1049px;top:166px;width:332px;display:flex;flex-direction:column;gap:8px}
+  .footer .social a{align-self:flex-start;position:relative;font-size:16px;line-height:18px;text-decoration:none}
+  .footer .social a::after{content:'';position:absolute;left:0;right:0;bottom:-2px;height:1px;
+                           background:currentColor;transform:scaleX(0);transform-origin:left;transition:transform .25s ease}
+  .footer .social a:hover::after{transform:scaleX(1)}
+  .footer .note{position:absolute;left:1049px;top:369px;width:332px;font-size:14px;line-height:22px;opacity:.7}
+  .footer .legal,.footer .up{position:absolute;top:506px;font-size:14px;line-height:22px}
+  .footer .legal{left:392px;opacity:.55}
+  .footer .up{left:1049px;display:inline-flex;gap:6px;text-decoration:none}
+  .footer .up i{font-style:normal;display:inline-block;transition:transform .25s ease}
+  .footer .up:hover i{transform:translateY(-3px)}
+  .footer a:hover{text-decoration:none}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="inner">
+    <a href="index.html">Raily</a>
+    <div class="links">
+      <a href="#" target="_blank" rel="noopener">Instagram</a>
+      <a href="https://www.linkedin.com/in/ranabuvi-abdrakhmanova-339891267/" target="_blank" rel="noopener">LinkedIn</a>
+      <a href="https://www.behance.net/rinaraily" target="_blank" rel="noopener">Behance</a>
+      <a href="#" target="_blank" rel="noopener">CV</a>
+    </div>
+  </div>
+</header>
+
+<div class="hero">
+  <div class="hero-in">
+    <img src="assets/home/mockups/carbanara.png" alt="Carbanara — restaurant management app">
+  </div>
+</div>
+
+<div class="frame">
+  <!-- the grid spans the whole frame, footer included, so it never stops mid-page -->
+  <div class="guides">
+    <i style="left:64px"></i><i style="left:392px"></i><i style="left:721px"></i>
+    <i style="left:1049px"></i><i style="left:1377px"></i>
+  </div>
+
+  <div class="content">
+
+    <div class="cols">
+      <aside class="sidebar">
+        <a class="back" href="javascript:history.back()">&larr; Back</a>
+        <nav class="sidenav">
+          <a href="#about">About</a>
+          <a href="#problem">Problem</a>
+          <a href="#research">Research</a>
+          <a href="#ideation">Ideation</a>
+          <a href="#solution">Solution</a>
+          <a href="#learnings">Learnings</a>
+        </nav>
+      </aside>
+
+      <main class="main">
+        <section id="about">
+          <h1>Restaurant management system: live queue and interactive floor plan</h1>
+          <p class="intro">We designed a web service for European restaurants with high guest traffic. The product enables table reservations and live queue management — guests receive a notification when their table is ready and can comfortably walk around while waiting.<br>My contribution: end-to-end UI design, interactive floor plan design, prototyping,  and usability testing.</p>
+          <div class="meta">
+            <div><div class="k">Role</div><div class="v"><span>Product / UX / UI Designer</span></div></div>
+            <div><div class="k">Timeline</div><div class="v"><span>08/08/25 — 20/11/25</span></div></div>
+            <div><div class="k">Methods</div><div class="v"><span>User research</span><span>UIUX Design</span><span>Prototyping</span></div></div>
+          </div>
+        </section>
+
+        <section id="problem">
+          <div class="card problem-card">
+            <div class="label">PROBLEM</div>
+            <h2>The staff didn&rsquo;t have visibility into what was happening in&nbsp;the dining area without leaving it</h2>
+            <p>In busy restaurants, staff couldn&rsquo;t quickly understand the real-time state of the floor: which tables were occupied, which had been moved, and whether any seats were available. The only way to know was to physically walk through the dining area. This slowed down operations and led to booking errors.</p>
+          </div>
+        </section>
+
+        <section id="research" class="sect">
+          <div class="label">RESEARCH</div>
+          <h2>Competitors handle reservations, but not visualization</h2>
+          <p>We analyzed existing restaurant management solutions. The key insight: most systems focus on reservation lists and queues but don&rsquo;t provide staff with a real-time visual understanding of the floor. This feature is new to the industry, which meant there were no established patterns to rely on.</p>
+          <div class="photos">
+            <img src="assets/raily/research-1.png" alt="Restaurant staff during service">
+            <img src="assets/raily/research-2.png" alt="Dining room tables">
+          </div>
+        </section>
+
+        <section id="ideation" class="sect">
+          <div class="label">IDEATION</div>
+          <h2>How can we represent the floor in a way that works for everyone?</h2>
+          <p>We explored different approaches to visualizing table status. The main challenge was to make the interface instantly readable without adding unnecessary cognitive load.</p>
+
+          <div class="label sublabel">Rejected solutions</div>
+          <div class="card carousel">
+            <div class="hyp" id="hypTitle">Hypothesis 1</div>
+            <img class="shot" id="hypShot" src="assets/raily/rejected-phone.png" alt="Rejected solution mockup">
+            <button class="car-btn prev" aria-label="Previous" onclick="hyp(-1)"><svg viewBox="0 0 16 16"><path d="M10 3 L5 8 l5 5"/></svg></button>
+            <button class="car-btn next" aria-label="Next" onclick="hyp(1)"><svg viewBox="0 0 16 16"><path d="M6 3 L11 8 l-5 5"/></svg></button>
+            <p class="cap" id="hypCap">Manually adding tables from a library (Very time-consuming and complex, requiring significant setup effort)</p>
+          </div>
+        </section>
+
+        <section id="solution" class="sect">
+          <div class="label">SOLUTION</div>
+          <p class="solution-intro">We created an interactive floor plan with the real-time status of each table. Staff can grasp the full picture at a glance — without walking through the dining area. The layout accounts for non-standard configurations, such as merged tables and changes in seating capacity.</p>
+          <div class="card solution-card">
+            <div class="proto-wrap">
+              <iframe src="floorplan-flow.html?embed=1" title="Interactive floorplan prototype — click through the flow"></iframe>
+            </div>
+          </div>
+          <div class="solution-note">
+            <p>Add a prominent banner that allows users to create a floor plan from a building layout. All they need to do is upload an image (restaurants always have a fire safety plan) — even a hand-drawn sketch will work.<br>The convenience is that most restaurants already have a floor plan for fire safety. Alternatively, a hand-drawn layout works too — our AI tests showed it can accurately interpret a wide range of plans.</p>
+          </div>
+        </section>
+
+        <section class="results">
+          <div class="label">RESULTS</div>
+          <div class="cards3">
+            <div class="rcard"><img src="assets/raily/ico-navigate.svg" alt=""><div class="t">Staff can navigate the&nbsp;floor more quickly</div></div>
+            <div class="rcard"><img src="assets/raily/ico-errors.svg" alt=""><div class="t">Fewer booking errors</div></div>
+            <div class="rcard"><img src="assets/raily/ico-launched.svg" alt=""><div class="t">The product has been launched  and is in use</div></div>
+          </div>
+        </section>
+
+        <section id="learnings" class="learnings">
+          <div class="label">LEARNINGS</div>
+          <div class="lcols">
+            <div><p>Simplicity vs. functionality is a constant balancing act.<br>The floor plan had to be flexible enough to handle real-world, non-standard configurations, yet simple enough for staff to use without training. Every added feature was carefully validated for necessity.</p></div>
+            <div><p>Testing with real users changes everything.<br>Restaurant staff work under constant pressure and time constraints. Usability tests with real staff revealed patterns that are impossible to predict during the design phase.</p></div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <footer class="footer" id="contact">
+    <p class="who">Rina Abdrakhmanova<br><i>UI/ UX /Product Designer</i></p>
+    <a class="all" href="index.html">&larr; All cases</a>
+
+    <h2 class="ask">Have a project<br>in mind?</h2>
+    <p class="say">Let's talk.</p>
+    <a class="mail" href="mailto:ranabuvia@gmail.com">ranabuvia@gmail.com</a>
+
+    <nav class="social" aria-label="Elsewhere">
+      <a href="#" target="_blank" rel="noopener">Instagram</a>
+      <a href="https://www.linkedin.com/in/ranabuvi-abdrakhmanova-339891267/" target="_blank" rel="noopener">LinkedIn</a>
+      <a href="https://www.behance.net/rinaraily" target="_blank" rel="noopener">Behance</a>
+      <a href="#" target="_blank" rel="noopener">CV</a>
+    </nav>
+    <p class="note">Based in Almaty, working with teams anywhere. Open to product work — B2B SaaS, IoT and fintech.</p>
+
+    <p class="legal">© 2026 Rina Abdrakhmanova</p>
+    <a class="up" href="#" onclick="window.scrollTo({top:0,behavior:'smooth'});return false">Back to top <i>↑</i></a>
+  </footer>
+
+</div>
+<script>
+  // rejected-solutions carousel (Hypothesis 1-3, from Figma frames 88:11565 / 89:12681 / 89:13504)
+  const HYPS = [
+    {title:'Hypothesis 1', img:'assets/raily/rejected-phone.png',
+     cap:'Manually adding tables from a library (Very time-consuming and complex, requiring significant setup effort)'},
+    {title:'Hypothesis 2', img:'assets/raily/rejected-phone-2.png',
+     cap:'Creating zones first, manually entering the number of tables, and then configuring them (the system generates only a basic setup — adjusting it to the actual floor plan still takes significant time)'},
+    {title:'Hypothesis 3', img:'assets/raily/rejected-phone-3.png',
+     cap:'Creation via text-based AI\nSimplifies the setup process, but still requires significant time for fine-tuning'}
+  ];
+  HYPS.forEach(h => { const i = new Image(); i.src = h.img; });
+  let hypIdx = 0;
+  function hyp(dir){
+    hypIdx = (hypIdx + dir + HYPS.length) % HYPS.length;
+    const c = document.querySelector('.carousel');
+    c.classList.add('switching');
+    setTimeout(()=>{
+      const h = HYPS[hypIdx];
+      document.getElementById('hypTitle').textContent = h.title;
+      document.getElementById('hypShot').src = h.img;
+      document.getElementById('hypCap').innerHTML = h.cap.replace(/\n/g,'<br>');
+      c.classList.remove('switching');
+    }, 220);
+  }
+</script>
+<script>
+  /* The menu is fixed, so it has to switch from white to black the moment it stops sitting
+     over the hero image. Measured off the hero's own position rather than a hard-coded
+     height, so it survives the 1.2 zoom at 1920. */
+  (function(){
+    const hero = document.querySelector('.hero');
+    if (!hero) return;
+    const onScroll = () => {
+      document.body.classList.toggle('scrolled', hero.getBoundingClientRect().bottom < 80);
+    };
+    addEventListener('scroll', onScroll, { passive: true });
+    addEventListener('resize', onScroll);
+    onScroll();
+  })();
+</script>
+<script src="assets/reveal.js"></script>
+</body>
+</html>

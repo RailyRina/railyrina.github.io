@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rating — microinteraction</title>
+<style>
+  :root{ --on:#13E764; --off:#B2B2B2; --stage:#141414 }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:var(--stage);min-height:100vh;display:flex;align-items:center;justify-content:center;
+       font-family:'PP Neue Montreal','Inter',system-ui,sans-serif;color:#fff}
+
+  /* 518x536 artboard, star row centred exactly as in the storyboard */
+  .stage{position:relative;width:518px;height:536px;flex:none;user-select:none}
+
+  .rating{position:absolute;left:98px;top:236px;width:323px;height:64.7px;display:flex}
+  .star{width:64.7px;height:64.7px;flex:none;border:0;padding:0;background:none;cursor:pointer;display:block}
+  .star svg{width:100%;height:100%;display:block;overflow:visible}
+
+  .shape{fill:var(--off);stroke:var(--off);stroke-width:4.04344;stroke-linejoin:round;
+         transition:fill .28s ease,stroke .28s ease;transform-origin:32.35px 32.35px}
+  .star.on .shape{fill:var(--on);stroke:var(--on)}
+  /* hover preview before committing a rating */
+  .rating:not(.locked):hover .star.pre .shape{fill:#5c6a60;stroke:#5c6a60}
+
+  .rays{opacity:0;transform-origin:32.35px 32.35px}
+  .rays line{stroke:var(--on);stroke-width:3.48439;stroke-linecap:round}
+
+  .star.pop .shape{animation:starPop .5s cubic-bezier(.34,1.56,.64,1)}
+  .star.pop .rays{animation:burst .55s ease-out}
+  @keyframes starPop{0%{transform:scale(.55)}55%{transform:scale(1.18)}100%{transform:scale(1)}}
+  @keyframes burst{0%{opacity:0;transform:scale(.35)}28%{opacity:1}100%{opacity:0;transform:scale(1.22)}}
+
+  .hint{position:absolute;left:0;right:0;top:344px;text-align:center;font-size:14px;color:#5f5f5f;
+        transition:opacity .3s}
+  .stage.rated .hint{opacity:0}
+
+  /* reset takes the hint's place once a score is set */
+  .reset{position:absolute;left:50%;top:334px;transform:translateX(-50%);
+         background:none;border:1px solid #3a3a3a;border-radius:20px;color:#8a8a8a;
+         font:inherit;font-size:13px;padding:7px 18px;cursor:pointer;
+         opacity:0;pointer-events:none;transition:opacity .3s,border-color .2s,color .2s}
+  .stage.rated .reset{opacity:1;pointer-events:auto}
+  .reset:hover{border-color:#5c5c5c;color:#c4c4c4}
+</style>
+</head>
+<body>
+
+<div class="stage" id="stage">
+  <div class="rating" id="rating"></div>
+  <div class="hint">tap to rate</div>
+  <button class="reset" id="reset">↺ Reset</button>
+</div>
+
+<script>
+  /* Geometry lifted from Figma Section 4 (192:21674):
+     star instance 64.7px, shape 40.4x38.9 inset by 11.8 (stroke 4.04 bleeds 2.02 more),
+     eight sparks on a ~32px radius, dash length ~6, stroke 3.48. */
+  const SHAPE = 'M15.9211 15.8311L22.239 2.02148L28.5568 15.8311L42.4562 17.0865L32.3476 27.1299'
+              + 'L34.8747 40.9396L22.239 34.6625L9.60322 40.9396L12.1304 27.1299L2.02178 17.0865Z';
+  const C = 32.35;
+  const RAYS = [0,45,90,135,180,225,270,315].map(deg => {
+    const a = deg * Math.PI / 180, c = Math.cos(a), s = Math.sin(a);
+    return `<line x1="${(C+29*c).toFixed(2)}" y1="${(C+29*s).toFixed(2)}"`
+         + ` x2="${(C+35*c).toFixed(2)}" y2="${(C+35*s).toFixed(2)}"/>`;
+  }).join('');
+
+  const rating = document.getElementById('rating');
+  const stage = document.getElementById('stage');
+  rating.innerHTML = [1,2,3,4,5].map(n =>
+    `<button class="star" data-n="${n}" aria-label="${n} of 5">
+       <svg viewBox="0 0 64.7 64.7">
+         <g class="rays">${RAYS}</g>
+         <path class="shape" d="${SHAPE}" transform="translate(9.78,9.78)"/>
+       </svg>
+     </button>`).join('');
+
+  const stars = [...rating.querySelectorAll('.star')];
+  const timers = [];
+  let score = 0;
+
+  const clear = () => { timers.forEach(clearTimeout); timers.length = 0; };
+  const pop = el => {                       // only the newest star carries the burst
+    stars.forEach(s => s.classList.remove('pop'));
+    void el.offsetWidth;
+    el.classList.add('pop');
+  };
+
+  function rate(n){
+    clear();
+    stage.classList.add('rated');
+    stars.forEach(s => s.classList.remove('pre'));
+
+    if (n < score){                       // lowering: the extra stars just go out
+      stars.forEach((s,i) => { s.classList.toggle('on', i < n); s.classList.remove('pop'); });
+      score = n; return;
+    }
+    // raising: fill one after another, each new star bursts
+    for (let i = 0; i < n; i++){
+      const s = stars[i];
+      if (s.classList.contains('on')) continue;
+      timers.push(setTimeout(() => { s.classList.add('on'); pop(s); }, (i - score) * 150));
+    }
+    score = n;
+  }
+
+  function reset(){                        // back to frame 1 — every star grey again
+    clear();
+    stars.forEach(s => s.classList.remove('on','pop','pre'));
+    score = 0;
+    stage.classList.remove('rated');
+  }
+  document.getElementById('reset').addEventListener('click', reset);
+  reset();                                 // guarantee the grey starting state
+
+  stars.forEach((s, i) => {
+    s.addEventListener('click', () => rate(i + 1));
+    s.addEventListener('mouseenter', () => {
+      stars.forEach((o, j) => o.classList.toggle('pre', j <= i && !o.classList.contains('on')));
+    });
+  });
+  rating.addEventListener('mouseleave', () => stars.forEach(s => s.classList.remove('pre')));
+</script>
+</body>
+</html>

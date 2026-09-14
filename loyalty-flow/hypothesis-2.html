@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Гипотеза 2 — Сканирование камерой</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --dark: #24232d; --dark-600: #7c7b81; --dark-200: #d3d3d5; --dark-100: #eae9ea;
+    --white: #ffffff; --light-grey: #f2f2f2; --btn-black: #222222;
+    --green: #31a456; --light-green: #e8f9f0; --brand-green: #457454;
+    --amber: #e3a13a; --light-amber: #fdf3e0; --red: #d9483b; --light-red: #fdecea;
+    --r-m: 12px;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Manrope', -apple-system, sans-serif; background: #3d3c44; min-height: 100vh;
+    display: flex; flex-direction: column; align-items: center; gap: 28px; padding: 48px 24px 64px;
+  }
+  .page-head { text-align: center; max-width: 760px; }
+  .page-head .kicker { display: inline-block; font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: #fff; background: rgba(255,255,255,.12); border-radius: 100px; padding: 6px 14px; margin-bottom: 14px; }
+  .page-head h1 { color: #fff; font-size: 26px; font-weight: 700; margin-bottom: 10px; }
+  .page-head p { color: rgba(255,255,255,.65); font-size: 15px; line-height: 1.55; }
+  .caption { text-align: center; max-width: 420px; }
+  .caption .tag { display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; border-radius: 100px; padding: 5px 12px; margin-bottom: 10px; color: #ffb4ab; background: rgba(255,120,110,.14); }
+  .caption h2 { color: #fff; font-size: 17px; font-weight: 700; margin-bottom: 6px; }
+  .caption p { color: rgba(255,255,255,.6); font-size: 13.5px; line-height: 1.55; }
+
+  /* ---------- phone ---------- */
+  .phone { width: 393px; height: 812px; background: var(--light-grey); border-radius: 40px; overflow: hidden; position: relative; flex-shrink: 0; box-shadow: 0 24px 80px rgba(0,0,0,.45); }
+  .status-bar { height: 54px; display: flex; align-items: center; justify-content: space-between; padding-right: 30px; position: relative; z-index: 3; }
+  .status-bar .time { width: 138px; text-align: center; font-family: -apple-system, 'SF Pro', 'Manrope', sans-serif; font-size: 17px; font-weight: 600; color: var(--dark); letter-spacing: -.2px; }
+  .status-bar .levels { display: flex; align-items: center; gap: 7px; }
+  .app-header { height: 24px; margin: 16px 16px 0; display: flex; align-items: center; position: relative; }
+  .app-header .back { width: 24px; height: 24px; background: none; border: none; padding: 0; cursor: pointer; }
+  .app-header .title { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); font-size: 16px; line-height: 24px; color: var(--dark); white-space: nowrap; }
+  .content { position: absolute; top: 94px; bottom: 0; left: 0; right: 0; overflow-y: auto; padding: 24px 16px 120px; scrollbar-width: none; }
+  .content::-webkit-scrollbar { display: none; }
+
+  .cards-head { display: flex; gap: 8px; align-items: center; margin-bottom: 16px; }
+  .cards-head b { font-size: 20px; line-height: 28px; font-weight: 700; color: var(--dark); }
+  .cards-head span { font-size: 20px; line-height: 28px; font-weight: 700; color: var(--dark-600); }
+  .card-row { background: #fff; border-radius: var(--r-m); padding: 12px; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; }
+  .card-row .l { display: flex; gap: 8px; align-items: center; }
+  .card-row .ic { width: 28px; height: 28px; border-radius: 4px; background: var(--dark-200); display: flex; align-items: center; justify-content: center; }
+  .card-row .num { font-size: 16px; line-height: 1.4; color: var(--dark); }
+  .card-row .amount { font-size: 14px; color: var(--dark); padding: 4px 0; }
+  .card-row .unverified { display: inline-flex; align-items: center; gap: 4px; margin-left: 8px; font-size: 11px; font-weight: 700; color: var(--amber); background: var(--light-amber); border-radius: 100px; padding: 3px 8px; vertical-align: middle; }
+
+  .btn-stack { position: absolute; left: 16px; right: 16px; bottom: 25px; z-index: 2; }
+  .primary-btn { width: 100%; height: 55px; border: none; border-radius: 8px; background: var(--btn-black); color: #fff; font-family: inherit; font-size: 16px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
+
+  /* ---------- camera screen ---------- */
+  .camera { position: absolute; inset: 0; z-index: 10; background: #0d0d10; display: none; flex-direction: column; }
+  .camera.visible { display: flex; }
+  .camera .cam-top { height: 54px; display: flex; align-items: center; justify-content: space-between; padding: 0 30px 0 0; }
+  .camera .cam-top .time { width: 138px; text-align: center; font-family: -apple-system, 'SF Pro', 'Manrope', sans-serif; font-size: 17px; font-weight: 600; color: #fff; letter-spacing: -.2px; }
+  .camera .cam-hdr { height: 24px; margin: 16px 16px 0; display: flex; align-items: center; position: relative; }
+  .camera .cam-hdr .x { width: 24px; height: 24px; background: none; border: none; padding: 0; cursor: pointer; }
+  .camera .cam-hdr .title { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); font-size: 16px; color: #fff; white-space: nowrap; }
+  .viewfinder { position: relative; flex: 1; margin: 22px 0 0; overflow: hidden;
+    background:
+      radial-gradient(120% 70% at 50% 110%, rgba(90,84,70,.55), transparent 60%),
+      linear-gradient(160deg, #2a2823 0%, #1b1a1c 45%, #121216 100%); }
+  /* the desk the card lies on: a soft wood-ish grain */
+  .viewfinder::before { content: ''; position: absolute; inset: 0; opacity: .35;
+    background: repeating-linear-gradient(97deg, rgba(255,255,255,.035) 0 3px, transparent 3px 11px); }
+  .vf-card { position: absolute; left: 50%; top: 50%; width: 300px; height: 190px; transform: translate(-50%, -52%) rotate(-3deg);
+    background: linear-gradient(135deg, #f4f2ea, #dcd9cf); border-radius: 14px;
+    box-shadow: 0 18px 40px rgba(0,0,0,.55), inset 0 0 0 1px rgba(255,255,255,.4); filter: blur(.4px); }
+  .vf-card .logo { position: absolute; right: 18px; top: 16px; font-size: 11px; font-weight: 700; color: #9d9a92; letter-spacing: .04em; transform: rotate(-90deg); transform-origin: right top; }
+  .vf-card .print { position: absolute; left: 24px; bottom: 26px; font-family: 'Courier New', monospace; font-size: 14px; letter-spacing: .12em; color: #6b6963; }
+  .vf-card .print b { font-weight: 400; color: #a9a69e; text-shadow: 0 0 2px #a9a69e; }   /* the smudged digits */
+  .vf-card .smudge { position: absolute; left: 118px; bottom: 20px; width: 62px; height: 30px; border-radius: 50%;
+    background: radial-gradient(closest-side, rgba(215,212,204,.95), rgba(215,212,204,0)); }
+  .frame { position: absolute; left: 50%; top: 50%; width: 330px; height: 220px; transform: translate(-50%, -52%); pointer-events: none; }
+  .frame i { position: absolute; width: 28px; height: 28px; border: 3px solid #fff; border-radius: 6px; }
+  .frame i:nth-child(1) { left: 0; top: 0; border-right: 0; border-bottom: 0; border-radius: 6px 0 0 0; }
+  .frame i:nth-child(2) { right: 0; top: 0; border-left: 0; border-bottom: 0; border-radius: 0 6px 0 0; }
+  .frame i:nth-child(3) { left: 0; bottom: 0; border-right: 0; border-top: 0; border-radius: 0 0 0 6px; }
+  .frame i:nth-child(4) { right: 0; bottom: 0; border-left: 0; border-top: 0; border-radius: 0 0 6px 0; }
+  .scanline { position: absolute; left: 6px; right: 6px; height: 2px; top: 0; background: linear-gradient(90deg, transparent, #7dff9b, transparent); box-shadow: 0 0 14px #7dff9b; opacity: 0; }
+  .camera.scanning .scanline { opacity: 1; animation: scan 1.4s ease-in-out infinite; }
+  @keyframes scan { 0% { top: 6px } 50% { top: calc(100% - 8px) } 100% { top: 6px } }
+  .camera.scanning .frame i { border-color: #7dff9b; }
+  .vf-hint { position: absolute; left: 0; right: 0; bottom: 34px; text-align: center; color: rgba(255,255,255,.75); font-size: 14px; }
+  .shutter-wrap { height: 128px; display: flex; align-items: center; justify-content: center; background: #0d0d10; }
+  .shutter { width: 72px; height: 72px; border-radius: 50%; border: 4px solid #fff; background: none; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+  .shutter i { width: 58px; height: 58px; border-radius: 50%; background: #fff; transition: transform .12s; }
+  .shutter:active i { transform: scale(.9); }
+  .shutter:disabled { opacity: .35; cursor: default; }
+
+  /* ---------- result sheet ---------- */
+  .sheet-overlay { position: absolute; inset: 0; z-index: 20; background: rgba(36,35,45,.45); display: none; }
+  .sheet-overlay.visible { display: block; }
+  .sheet { position: absolute; left: 0; right: 0; bottom: 0; background: #eff0f2; border-radius: 16px 16px 0 0; box-shadow: 0 -12px 45px rgba(30,45,92,.12); padding: 0 20px 24px; }
+  .sheet .handle { width: 42px; height: 3px; border-radius: 2px; background: var(--dark-200); margin: 11px auto 0; }
+  .sheet-title { font-size: 16px; font-weight: 700; color: var(--dark); text-align: center; margin-top: 14px; }
+  .read-card { margin-top: 16px; background: #fff; border-radius: var(--r-m); padding: 18px 16px; text-align: center; }
+  .read-card .rc-label { font-size: 14px; color: var(--dark); margin-bottom: 6px; }
+  .read-card .rc-value { font-size: 26px; line-height: 36px; font-weight: 600; letter-spacing: 1px; color: var(--dark); font-variant-numeric: tabular-nums; }
+  .read-card .rc-value .q { display: inline-block; color: var(--red); background: var(--light-red); border-radius: 5px; padding: 0 3px; margin: 0 1px; }
+  .read-card .rc-conf { margin-top: 10px; font-size: 13px; color: var(--dark-600); }
+  .warn-box { margin-top: 12px; display: flex; gap: 10px; align-items: flex-start; background: var(--light-amber); border-radius: var(--r-m); padding: 12px 14px; }
+  .warn-box .wb-ic { width: 32px; height: 32px; border-radius: 50%; background: #fff; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .warn-box .wb-t { font-size: 14px; font-weight: 700; color: var(--dark); }
+  .warn-box .wb-s { font-size: 13px; line-height: 1.45; color: var(--dark-600); margin-top: 2px; }
+  .sheet-btns { display: flex; gap: 8px; margin-top: 16px; }
+  .sheet-btns button { flex: 1; height: 48px; border-radius: 8px; font-family: inherit; font-size: 15px; font-weight: 700; cursor: pointer; }
+  .sheet-btns .retake { background: #fff; color: var(--dark); border: 1px solid var(--dark-200); }
+  .sheet-btns .force { background: var(--btn-black); color: #fff; border: none; }
+
+  .restart { font-family: inherit; font-size: 13px; font-weight: 600; color: rgba(255,255,255,.65); background: rgba(255,255,255,.08); border: none; border-radius: 100px; padding: 8px 18px; cursor: pointer; transition: background .15s, color .15s; }
+  .restart:hover { background: rgba(255,255,255,.18); color: #fff; }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+  .anim-in { animation: fadeUp .45s cubic-bezier(.2,.7,.3,1) both; }
+  svg { display: block; }
+  /* ?embed=1 — inside the case page: light card ground, soft shadow, no restart (the back arrow resets), as in the Carbanara embed */
+  body.embed{background:#EAEAEA;padding:0;min-height:100vh;justify-content:center;gap:0}
+  body.embed .page-head,body.embed .caption,body.embed .restart{display:none}
+  body.embed{overflow:hidden}
+  /* Figma 89:15778: the screen is drawn at 222.73x482 with a 1px black inside stroke and r23 — at 1x that is 2px (Chrome snaps 1.7 down to 1) and r39 */
+  body.embed .phone{box-shadow:none;border:2px solid #000;border-radius:39px}
+</style>
+</head>
+<body>
+
+<div class="page-head">
+  <div class="kicker">Гипотеза 2</div>
+  <h1>Сканирование камерой телефона</h1>
+  <p>Предположение: владелец наводит камеру на карту, приложение распознаёт напечатанный номер и добавляет карту в базу.</p>
+</div>
+
+<div class="phone">
+  <div class="status-bar"><div class="time">9:41</div><div class="levels" data-statusicons></div></div>
+  <div class="app-header">
+    <button class="back" data-caret aria-label="Начать сначала" onclick="resetAll()"></button>
+    <div class="title">Карты лояльности</div>
+  </div>
+  <div class="content" id="listContent"></div>
+  <div class="btn-stack">
+    <button class="primary-btn" onclick="openCamera()"><span data-cam></span>Сканировать карту</button>
+  </div>
+
+  <!-- camera -->
+  <div class="camera" id="camera">
+    <div class="cam-top"><div class="time">9:41</div><div class="levels" data-statusicons-light></div></div>
+    <div class="cam-hdr">
+      <button class="x" data-close-light onclick="closeCamera()" aria-label="Закрыть"></button>
+      <div class="title">Сканирование карты</div>
+    </div>
+    <div class="viewfinder">
+      <div class="vf-card">
+        <div class="logo">Smartec</div>
+        <div class="smudge"></div>
+        <div class="print">MF 2706972722 <b>089</b>,08242</div>
+      </div>
+      <div class="frame"><i></i><i></i><i></i><i></i><div class="scanline"></div></div>
+      <div class="vf-hint" id="vfHint">Наведите рамку на номер карты</div>
+    </div>
+    <div class="shutter-wrap"><button class="shutter" id="shutter" onclick="scan()"><i></i></button></div>
+  </div>
+
+  <!-- recognition result -->
+  <div class="sheet-overlay" id="resultOverlay">
+    <div class="sheet" id="resultSheet">
+      <div class="handle"></div>
+      <div class="sheet-title">Результат распознавания</div>
+      <div class="read-card">
+        <div class="rc-label">Номер карты</div>
+        <div class="rc-value">2706 9727 22<span class="q">?</span><span class="q">?</span> 08<span class="q">?</span></div>
+        <div class="rc-conf">Уверенность 71% · 3 символа не распознаны</div>
+      </div>
+      <div class="warn-box">
+        <div class="wb-ic" data-warn></div>
+        <div>
+          <div class="wb-t">Номер нельзя проверить</div>
+          <div class="wb-s">Карты печатает сторонний поставщик. Подтвердить номер можно только списанием с реальной карты.</div>
+        </div>
+      </div>
+      <div class="sheet-btns">
+        <button class="retake" onclick="retake()">Переснять</button>
+        <button class="force" onclick="forceAdd()">Добавить всё равно</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="caption">
+  <div class="tag">Гипотеза отклонена</div>
+  <h2>Данные нечитаемы, проверить нельзя</h2>
+  <p>Мы не контролируем качество печати на картах — номер может быть смазан или выцвести. И проверить распознанное нечем: единственный способ убедиться — реально списать с карты. Риск ошибок слишком высок.</p>
+</div>
+
+<button class="restart" onclick="resetAll()">↺&nbsp; Начать сначала</button>
+
+<script>
+const I = {
+  caret: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M15 4.5L7.5 12L15 19.5" stroke="#24232d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+  creditCard: `<svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="1.8" y="4" width="16.4" height="12" rx="2" stroke="#fff" stroke-width="1.5"/><path d="M1.8 8H18.2" stroke="#fff" stroke-width="1.5"/><path d="M5 12.6H9" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/></svg>`,
+  cam: `<svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M3 7.5A1.5 1.5 0 0 1 4.5 6h2l1.2-1.8h4.6L13.5 6h2A1.5 1.5 0 0 1 17 7.5v7A1.5 1.5 0 0 1 15.5 16h-11A1.5 1.5 0 0 1 3 14.5v-7Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="10" cy="11" r="3" stroke="currentColor" stroke-width="1.6"/></svg>`,
+  closeLight: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M6 6l12 12M18 6L6 18" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg>`,
+  warn: `<svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 3L16 15H2L9 3Z" stroke="#e3a13a" stroke-width="1.6" stroke-linejoin="round"/><path d="M9 8v3" stroke="#e3a13a" stroke-width="1.6" stroke-linecap="round"/><circle cx="9" cy="13" r=".9" fill="#e3a13a"/></svg>`,
+  cellular: (c) => `<svg width="19" height="12" viewBox="0 0 19 12" fill="${c}"><rect x="0" y="7.5" width="3" height="4.2" rx="1"/><rect x="5.1" y="5" width="3" height="6.7" rx="1"/><rect x="10.2" y="2.5" width="3" height="9.2" rx="1"/><rect x="15.3" y="0" width="3" height="11.7" rx="1"/></svg>`,
+  wifi: (c) => `<svg width="17" height="12" viewBox="0 0 17 12" fill="${c}"><path d="M8.5 11.6a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Z"/><path d="M8.5 5.9c1.5 0 2.87.55 3.92 1.47a.55.55 0 0 0 .76-.03l.72-.74a.53.53 0 0 0-.03-.78A7.5 7.5 0 0 0 8.5 3.9a7.5 7.5 0 0 0-5.37 1.92.53.53 0 0 0-.03.78l.72.74c.2.21.54.22.76.03A5.94 5.94 0 0 1 8.5 5.9Z"/><path d="M8.5 1.55A10.6 10.6 0 0 1 15.7 4.4a.55.55 0 0 0 .77-.02l.73-.74a.53.53 0 0 0-.02-.77A12.2 12.2 0 0 0 8.5 0C5.3 0 2.38 1.1.82 2.87a.53.53 0 0 0-.02.77l.73.74c.2.21.55.22.77.02A10.6 10.6 0 0 1 8.5 1.55Z"/></svg>`,
+  battery: (c) => `<svg width="28" height="13" viewBox="0 0 28 13" fill="none"><rect x="0.5" y="0.5" width="24" height="12" rx="4" stroke="${c}" stroke-opacity=".35"/><rect x="2" y="2" width="21" height="9" rx="2.5" fill="${c}"/><path d="M26.3 4.3v4.4c1-.36 1.7-1.2 1.7-2.2s-.7-1.84-1.7-2.2Z" fill="${c}" fill-opacity=".4"/></svg>`
+};
+
+const START_CARDS = [{ n: '5678 9012 3456' }, { n: '7890 1234 5678' }];
+const state = { cards: START_CARDS.map(c => ({ ...c })), camOpen: false, scanning: false, resultOpen: false };
+let scanTimer = null;
+
+function renderList(newIndex = -1) {
+  document.getElementById('listContent').innerHTML = `
+    <div class="cards-head"><b>Карты</b><span>${state.cards.length}</span></div>
+    ${state.cards.map((c, i) => `
+      <div class="card-row ${i <= newIndex ? 'anim-in' : ''}">
+        <div class="l"><div class="ic">${I.creditCard}</div><div class="num">${c.n}${c.unverified ? '<span class="unverified">не проверена</span>' : ''}</div></div>
+        <div class="amount">0 ₸</div>
+      </div>`).join('')}`;
+}
+
+function openCamera() {
+  state.camOpen = true; state.scanning = false;
+  const cam = document.getElementById('camera');
+  cam.classList.add('visible'); cam.classList.remove('scanning');
+  document.getElementById('vfHint').textContent = 'Наведите рамку на номер карты';
+  document.getElementById('shutter').disabled = false;
+}
+function closeCamera() {
+  clearTimeout(scanTimer); state.camOpen = false;
+  document.getElementById('camera').classList.remove('visible', 'scanning');
+}
+function scan() {
+  if (state.scanning) return;
+  state.scanning = true;
+  const cam = document.getElementById('camera');
+  cam.classList.add('scanning');
+  document.getElementById('shutter').disabled = true;
+  document.getElementById('vfHint').textContent = 'Распознаём номер…';
+  scanTimer = setTimeout(() => {
+    cam.classList.remove('scanning');
+    state.resultOpen = true;
+    document.getElementById('resultOverlay').classList.add('visible');
+    document.getElementById('resultSheet').classList.add('anim-in');
+  }, 2200);
+}
+function retake() {
+  state.resultOpen = false; state.scanning = false;
+  document.getElementById('resultOverlay').classList.remove('visible');
+  document.getElementById('resultSheet').classList.remove('anim-in');
+  document.getElementById('vfHint').textContent = 'Наведите рамку на номер карты';
+  document.getElementById('shutter').disabled = false;
+}
+function forceAdd() {
+  state.cards.unshift({ n: '2706 9727 22?? 08?', unverified: true });
+  retake(); closeCamera(); renderList(0);
+}
+function resetAll() {
+  clearTimeout(scanTimer);
+  Object.assign(state, { cards: START_CARDS.map(c => ({ ...c })), camOpen: false, scanning: false, resultOpen: false });
+  retake(); closeCamera(); renderList();
+}
+
+document.querySelectorAll('[data-caret]').forEach(el => el.innerHTML = I.caret);
+document.querySelectorAll('[data-cam]').forEach(el => el.innerHTML = I.cam);
+document.querySelectorAll('[data-close-light]').forEach(el => el.innerHTML = I.closeLight);
+document.querySelectorAll('[data-warn]').forEach(el => el.innerHTML = I.warn);
+document.querySelectorAll('[data-statusicons]').forEach(el => el.innerHTML = I.cellular('#24232d') + I.wifi('#24232d') + I.battery('#24232d'));
+document.querySelectorAll('[data-statusicons-light]').forEach(el => el.innerHTML = I.cellular('#fff') + I.wifi('#fff') + I.battery('#fff'));
+renderList();
+</script>
+<script>if(location.search.includes("embed=1"))document.body.classList.add("embed");</script>
+</body>
+</html>

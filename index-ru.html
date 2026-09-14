@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Рина Абдрахманова&nbsp;— UI/UX / Product Designer</title>
+<style>
+  /* The design is a 1440x900 canvas. --k scales every measurement taken off it, so the
+     whole thing grows as one piece instead of drifting apart. 1920x1080 is 1.333x wider
+     but only 1.2x taller, so it can't be filled edge to edge without distorting — 1.2
+     scales both axes evenly and leaves an even margin either side. */
+  :root{
+    --k:1;
+    --canvas:1440px;
+    --gutter:calc(60px * var(--k));
+    --paper:#f0f0f0;
+    --ink:#000;
+    --sans:'PP Neue Montreal','Inter',system-ui,-apple-system,sans-serif;
+    --serif:'PP Editorial Old','Times New Roman',Georgia,serif;
+    --edge:calc(50vw - (var(--canvas) * var(--k)) / 2);   /* left edge of the centred canvas */
+  }
+  @media (min-width:1800px){ :root{ --k:1.2 } }
+
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{background:var(--paper);color:var(--ink);font-family:var(--sans);
+       -webkit-font-smoothing:antialiased}
+  a{color:inherit;text-decoration:none}
+
+  /* ---------- fixed chrome ----------
+     Top bar and the two left blocks never scroll; only their colour and position change
+     once the first case slides up over the hero. */
+  .topbar{position:fixed;top:calc(40px * var(--k));left:0;right:0;z-index:60;
+          display:flex;justify-content:center;pointer-events:none}
+  .topbar .inner{width:calc(var(--canvas) * var(--k));padding:0 var(--gutter);display:flex;
+                 justify-content:space-between;align-items:center;pointer-events:auto}
+  .topbar a{font-size:calc(16px * var(--k));font-weight:500;line-height:calc(22px * var(--k));
+            color:#fff;transition:color .45s ease}
+  .topbar .links{display:flex;gap:calc(24px * var(--k))}
+  .topbar .links a{position:relative}
+  .topbar .links a::after{content:'';position:absolute;left:0;right:0;bottom:-2px;height:1px;
+                          background:currentColor;transform:scaleX(0);transform-origin:left;
+                          transition:transform .25s ease}
+  .topbar .links a:hover::after{transform:scaleX(1)}
+  body.docked .topbar a{color:var(--ink)}
+
+  /* the name: starts big and white over the hero, then travels down the left column
+     and settles small and black beside the cases */
+  .brand{position:fixed;z-index:55;left:0;right:0;top:19.9vh;
+         display:flex;justify-content:center;pointer-events:none;
+         transition:top .7s cubic-bezier(.22,1,.36,1)}
+  .brand .in{width:calc(var(--canvas) * var(--k));padding:0 var(--gutter)}
+  .brand .txt{display:block;width:calc(409px * var(--k));color:#fff;
+              font-size:calc(32px * var(--k));line-height:calc(34px * var(--k));
+              letter-spacing:-.01em;
+              transition:font-size .7s cubic-bezier(.22,1,.36,1),
+                         line-height .7s cubic-bezier(.22,1,.36,1),
+                         width .7s cubic-bezier(.22,1,.36,1),
+                         color .45s ease}
+  body.docked .brand{top:53.46vh}
+  body.docked .brand .txt{width:calc(204px * var(--k));
+                          font-size:calc(20px * var(--k));line-height:calc(22px * var(--k));
+                          color:var(--ink)}
+  .brand .role{font-family:var(--serif);font-style:italic}
+
+  /* the index of cases, pinned bottom-left on the hero and tucked under the name after */
+  .worklist{position:fixed;z-index:55;left:0;right:0;top:80.2vh;
+            display:flex;justify-content:center;
+            transition:top .7s cubic-bezier(.22,1,.36,1)}
+  .worklist .in{width:calc(var(--canvas) * var(--k));padding:0 var(--gutter);color:#fff;
+                transition:color .45s ease}
+  /* the hero sits it on the first grid line (64), 4px in from the gutter; docking pulls it flush */
+  .worklist .list{width:calc(204px * var(--k));margin-left:calc(4px * var(--k));
+                  transition:margin-left .7s cubic-bezier(.22,1,.36,1)}
+  body.docked .worklist{top:73.66vh}
+  body.docked .worklist .in{color:var(--ink)}
+  body.docked .worklist .list{margin-left:0}
+  /* On the footer the column lines up with the right-hand content: the name sits level with
+     the heading, and the index ends exactly where the e-mail does. The footer is shorter
+     than the screen, so both are measured up from the bottom edge. Both keep their travel transition. */
+  body.at-end .brand{top:calc(100vh - 462px * var(--k))}        /* footer top (100vh - 628) + 166 */
+  body.at-end .worklist{top:calc(100vh - 318px * var(--k))}     /* + 369 + 34 + 3 to the underline - 96 */
+  .worklist a{display:flex;justify-content:space-between;align-items:baseline;
+              height:calc(18px * var(--k));margin-bottom:calc(8px * var(--k));
+              font-size:calc(16px * var(--k));line-height:calc(18px * var(--k));
+              opacity:.85;transition:opacity .2s ease}
+  .worklist a:last-child{margin-bottom:0}
+  .worklist a:hover,.worklist a.current{opacity:1}
+  .worklist a.current span:first-child{text-decoration:underline;text-underline-offset:3px}
+  .worklist i{font-family:var(--serif);font-style:italic}
+
+  /* ---------- hero ----------
+     Sticky so the first case drives up over it rather than pushing it away. Its own grid
+     is already part of the exported artwork. */
+  .hero{position:sticky;top:0;height:100vh;min-height:720px;
+        background:url('assets/home/heroBg.jpg') center/cover no-repeat #4b8b96;
+        display:flex;justify-content:center}
+  .hero .inner{position:relative;z-index:2;width:calc(var(--canvas) * var(--k));padding:0 var(--gutter)}
+  .intro{position:absolute;left:calc(1049px * var(--k));top:19.9vh;width:calc(332px * var(--k));
+         color:#fff;font-size:calc(14px * var(--k));line-height:calc(22px * var(--k))}
+
+  /* anchored to the bottom, not the top: on anything shorter than the 900 canvas a top offset
+     let it run into the edge — the file has 56 between the plate and the frame's bottom */
+  .video{position:absolute;left:calc(1093px * var(--k));bottom:calc(56px * var(--k));width:calc(287px * var(--k));
+         transition:opacity .4s ease,transform .4s ease}
+  .video.hidden{opacity:0;transform:translateY(8px);pointer-events:none}
+  .video .bar{margin-left:auto;width:calc(82px * var(--k));height:calc(32px * var(--k));
+              display:flex;align-items:center;justify-content:center;gap:calc(6px * var(--k));
+              background:#fff;border:0;border-radius:calc(6px * var(--k));
+              font:inherit;font-size:calc(14px * var(--k));font-family:var(--serif);
+              font-style:italic;cursor:pointer;color:var(--ink)}
+  .video .bar svg{width:calc(12px * var(--k));height:calc(12px * var(--k))}
+  .video .plate{margin-top:calc(5px * var(--k));padding:calc(4px * var(--k));
+                background:#fff;border-radius:calc(6px * var(--k))}
+  .video .plate img{display:block;width:calc(279px * var(--k));height:calc(363px * var(--k));
+                    object-fit:cover;border-radius:calc(3px * var(--k))}
+
+  /* ---------- cases ----------
+     Each one sticks to the top, so the next slides up and covers the one before it. */
+  .case{position:sticky;top:0;height:100vh;min-height:720px;background:var(--paper);
+        box-shadow:0 -1px 0 rgba(0,0,0,.09);display:flex;justify-content:center}
+  .case .inner{position:relative;width:calc(var(--canvas) * var(--k));padding:0 var(--gutter);
+               z-index:2}
+
+  /* ---------- background grid ----------
+     The hero's grid, taken from the file: verticals at 64/392/720/1049/1377 of the canvas,
+     horizontals at 180/419/658/897 of its 900-tall frame, white at 5%.
+
+     It's `fixed`, so it is pinned to the viewport and never travels with a section — the
+     grid reads as one continuous backdrop rather than something each card carries. Every
+     section holds its own copy at identical viewport coordinates, which is what lets it
+     show through the opaque sticky cards: a single shared layer couldn't, since sticky
+     sections make their own stacking contexts and would paint over it. */
+  .grid{position:fixed;inset:0;z-index:1;pointer-events:none;
+        display:flex;justify-content:center;
+        opacity:0;transition:opacity .35s ease}
+  /* Every section carries its own copy and only the one on top is shown. That's what keeps
+     the lines *behind* the cards' content: a copy living in one section would paint over
+     everything in front of it, since sticky sections each make their own stacking context.
+     All copies sit at identical viewport coordinates, so the hand-off is invisible. */
+  .grid.on{opacity:1}
+  .grid .gv{position:relative;width:calc(var(--canvas) * var(--k));height:100%}
+  .grid span{position:absolute;background:rgba(0,0,0,.05)}
+  .grid.light span{background:rgba(255,255,255,.05)}    /* over the hero artwork */
+  .grid .v{top:0;bottom:0;width:1px}
+  .grid .h{left:0;right:0;height:1px}
+  .grid .v1{left:calc(64px * var(--k))}
+  .grid .v2{left:calc(392px * var(--k))}
+  .grid .v3{left:calc(720px * var(--k))}
+  .grid .v4{left:calc(1049px * var(--k))}
+  .grid .v5{left:calc(1377px * var(--k))}
+  .grid .h1{top:20%}
+  .grid .h2{top:46.56%}
+  .grid .h3{top:73.11%}
+  .grid .h4{top:99.67%}
+
+  .case h2{position:absolute;left:calc(392px * var(--k));top:18.5vh;width:calc(416px * var(--k));
+           font-size:calc(40px * var(--k));line-height:calc(44px * var(--k));
+           font-weight:500;letter-spacing:-.01em}
+  .case .kind{position:absolute;left:calc(392px * var(--k));top:25.7vh;width:calc(416px * var(--k));
+              font-size:calc(20px * var(--k));line-height:calc(22px * var(--k))}
+  .case .desc{position:absolute;left:calc(392px * var(--k));top:30.4vh;width:calc(416px * var(--k));
+              font-size:calc(20px * var(--k));line-height:calc(22px * var(--k))}
+  /* The preview card runs from the second grid line to the last (392 -> 1377), a flat
+     tint per case with a hairline edge; the mockup sits centred inside. --card is the
+     tint from the file — it shows while the image loads. The border is baked into the
+     export, so none is drawn here. */
+  .case .media{position:absolute;left:calc(392px * var(--k));top:37.1vh;
+               width:calc(985px * var(--k));height:52.8vh;
+               background:var(--card,#e4e4e4);border-radius:calc(8px * var(--k));overflow:hidden;
+               display:flex;align-items:flex-end;padding:calc(24px * var(--k));
+               transition:transform .35s cubic-bezier(.22,1,.36,1)}
+  .case a.media:hover{transform:translateY(-4px)}
+  /* exported at the card's own 985x473 (2x), so `cover` only ever crops the pixel or two
+     the viewport's height rounding adds — never enough to touch the mockups */
+  .case .media .cover{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
+                      display:block}
+  .case .media .open{position:relative;z-index:1;font-size:calc(15px * var(--k));
+                     opacity:0;transform:translateY(4px);
+                     transition:opacity .3s ease,transform .3s ease}
+  .case a.media:hover .open{opacity:.55;transform:translateY(0)}
+
+  /* ---------- footer ----------
+     Sized to its content (628 on the canvas: mail ends at 406, 100 clear, the 22px bottom
+     row, 100 to the edge) rather than a full screen. The sticky stack ends with <main>, so
+     the final case scrolls away and this rises in its place. The fixed name + index are still docked in
+     the left column, which is why nothing here lives left of 392 — that column is already
+     taken, and it reads as the footer's own. Copy carries the same grid so the lines hand
+     over cleanly. */
+  .footer{position:relative;height:calc(628px * var(--k));background:var(--paper);
+          display:flex;justify-content:center}
+  .footer .inner{position:relative;z-index:2;width:calc(var(--canvas) * var(--k));padding:0 var(--gutter)}
+  .footer .ask{position:absolute;left:calc(392px * var(--k));top:calc(166px * var(--k));width:calc(416px * var(--k));
+               font-size:calc(40px * var(--k));line-height:calc(44px * var(--k));
+               font-weight:500;letter-spacing:-.01em}
+  .footer .say{position:absolute;left:calc(392px * var(--k));top:calc(254px * var(--k));
+               font-family:var(--serif);font-style:italic;
+               font-size:calc(40px * var(--k));line-height:calc(44px * var(--k))}
+  .footer .mail{position:absolute;left:calc(392px * var(--k));top:calc(369px * var(--k));
+                font-size:calc(32px * var(--k));line-height:calc(34px * var(--k));letter-spacing:-.01em;
+                border-bottom:1px solid currentColor;padding-bottom:calc(2px * var(--k));
+                transition:opacity .2s ease}
+  .footer .mail:hover{opacity:.55}
+
+  .footer .social{position:absolute;left:calc(1049px * var(--k));top:calc(166px * var(--k));width:calc(332px * var(--k));
+                  display:flex;flex-direction:column;gap:calc(8px * var(--k))}
+  .footer .social a{align-self:flex-start;position:relative;
+                    font-size:calc(16px * var(--k));line-height:calc(18px * var(--k))}
+  .footer .social a::after{content:'';position:absolute;left:0;right:0;bottom:-2px;height:1px;
+                           background:currentColor;transform:scaleX(0);transform-origin:left;
+                           transition:transform .25s ease}
+  .footer .social a:hover::after{transform:scaleX(1)}
+  .footer .note{position:absolute;left:calc(1049px * var(--k));top:calc(369px * var(--k));width:calc(332px * var(--k));
+                font-size:calc(14px * var(--k));line-height:calc(22px * var(--k));opacity:.7}
+
+  .footer .legal,.footer .up{position:absolute;top:calc(506px * var(--k));
+                             font-size:calc(14px * var(--k));line-height:calc(22px * var(--k))}
+  .footer .legal{left:calc(392px * var(--k));opacity:.55}
+  .footer .up{left:calc(1049px * var(--k));display:inline-flex;gap:calc(6px * var(--k))}
+  .footer .up i{font-style:normal;display:inline-block;transition:transform .25s ease}
+  .footer .up:hover i{transform:translateY(-3px)}
+
+  @media (prefers-reduced-motion:reduce){
+    html{scroll-behavior:auto}
+    .brand,.worklist,.topbar a,.case .media{transition:none}
+  }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="inner">
+    <a href="index-ru.html">Raily</a>
+    <div class="links">
+      <a href="index.html" class="lang" title="English version">EN</a>
+      <a href="#" target="_blank" rel="noopener">Instagram</a>
+      <a href="https://www.linkedin.com/in/ranabuvi-abdrakhmanova-339891267/" target="_blank" rel="noopener">LinkedIn</a>
+      <a href="https://www.behance.net/rinaraily" target="_blank" rel="noopener">Behance</a>
+      <a href="#" target="_blank" rel="noopener">Резюме</a>
+    </div>
+  </div>
+</header>
+
+<div class="brand" id="brand">
+  <div class="in"><span class="txt">Рина Абдрахманова<br><span class="role">UI/ UX /Product Designer</span></span></div>
+</div>
+
+<nav class="worklist" id="worklist">
+  <div class="in">
+    <div class="list">
+      <a href="#c1"><span>Carbanara</span><i>I</i></a>
+      <a href="#c2"><span>CloudCore</span><i>II</i></a>
+      <a href="#c3"><span>Finance platform</span><i>III</i></a>
+      <a href="#c4"><span>Social app</span><i>IV</i></a>
+    </div>
+  </div>
+</nav>
+
+<section class="hero">
+  <div class="grid light"><div class="gv"><span class="v v1"></span><span class="v v2"></span><span class="v v3"></span><span class="v v4"></span><span class="v v5"></span></div><span class="h h1"></span><span class="h h2"></span><span class="h h3"></span><span class="h h4"></span></div>
+  <div class="inner">
+    <p class="intro">Senior Product Designer, 5+ лет опыта, Алматы. Проектирую сложные B2B SaaS и&nbsp;IoT-продукты на&nbsp;стыке бизнеса и&nbsp;дизайна.</p>
+
+    <div class="video" id="video">
+      <button class="bar" id="videoClose">Закрыть
+        <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.4">
+          <path d="M1 1l10 10M11 1L1 11"/>
+        </svg>
+      </button>
+      <div class="plate"><img src="assets/home/photo.png" alt="Рина Абдрахманова"></div>
+    </div>
+  </div>
+</section>
+
+<main>
+  <section class="case" id="c1">
+    <div class="grid"><div class="gv"><span class="v v1"></span><span class="v v2"></span><span class="v v3"></span><span class="v v4"></span><span class="v v5"></span></div><span class="h h1"></span><span class="h h2"></span><span class="h h3"></span><span class="h h4"></span></div>
+    <div class="inner">
+      <h2>Carbanara</h2>
+      <p class="kind">Product, UX-Design</p>
+      <p class="desc">Система управления рестораном: живая очередь и&nbsp;интерактивный план зала</p>
+      <a class="media has-cover" href="raily-case-ru.html" style="--card:#ddeaff"><img class="cover" src="assets/home/covers/carbanara.jpg" alt="Carbanara — приложение для управления рестораном" loading="lazy"><span class="open">Открыть кейс →</span></a>
+    </div>
+  </section>
+
+  <section class="case" id="c2">
+    <div class="grid"><div class="gv"><span class="v v1"></span><span class="v v2"></span><span class="v v3"></span><span class="v v4"></span><span class="v v5"></span></div><span class="h h1"></span><span class="h h2"></span><span class="h h3"></span><span class="h h4"></span></div>
+    <div class="inner">
+      <h2>CloudCore</h2>
+      <p class="kind">Product, UX-Design</p>
+      <p class="desc">Карты лояльности для&nbsp;IoT-автомойки&nbsp;— от&nbsp;концепции до&nbsp;запуска</p>
+      <a class="media has-cover" href="cloudcore-case-ru.html" style="--card:#dde4e0"><img class="cover" src="assets/home/covers/cloudcore.jpg" alt="CloudCore — карты лояльности для автомойки" loading="lazy"><span class="open">Открыть кейс →</span></a>
+    </div>
+  </section>
+
+  <section class="case" id="c3">
+    <div class="grid"><div class="gv"><span class="v v1"></span><span class="v v2"></span><span class="v v3"></span><span class="v v4"></span><span class="v v5"></span></div><span class="h h1"></span><span class="h h2"></span><span class="h h3"></span><span class="h h4"></span></div>
+    <div class="inner">
+      <h2>NDA</h2>
+      <p class="kind">Product, UX-Design</p>
+      <p class="desc">Крупная B2B-платформа для&nbsp;торговли инвестиционными фондами</p>
+      <a class="media has-cover" href="kyc-case-ru.html" style="--card:#e8edf5"><img class="cover" src="assets/home/covers/tangible.jpg" alt="B2B-платформа для торговли инвестиционными фондами" loading="lazy"><span class="open">Открыть кейс →</span></a>
+    </div>
+  </section>
+
+  <section class="case" id="c4">
+    <div class="grid"><div class="gv"><span class="v v1"></span><span class="v v2"></span><span class="v v3"></span><span class="v v4"></span><span class="v v5"></span></div><span class="h h1"></span><span class="h h2"></span><span class="h h3"></span><span class="h h4"></span></div>
+    <div class="inner">
+      <h2>NDA</h2>
+      <p class="kind">Product, UX-Design</p>
+      <p class="desc">Приложение для&nbsp;друзей: выбрать место вместе и&nbsp;собраться отдохнуть</p>
+      <a class="media has-cover" href="bar-case-ru.html" style="--card:#e4e4e4"><img class="cover" src="assets/home/covers/heineken.jpg" alt="Приложение для планирования вечера с друзьями" loading="lazy"><span class="open">Открыть кейс →</span></a>
+    </div>
+  </section>
+</main>
+
+<footer class="footer" id="contact">
+  <div class="grid"><div class="gv"><span class="v v1"></span><span class="v v2"></span><span class="v v3"></span><span class="v v4"></span><span class="v v5"></span></div><span class="h h1"></span><span class="h h2"></span><span class="h h3"></span><span class="h h4"></span></div>
+  <div class="inner">
+    <h2 class="ask">Есть проект<br>на&nbsp;примете?</h2>
+    <p class="say">Давайте обсудим.</p>
+    <a class="mail" href="mailto:ranabuvia@gmail.com">ranabuvia@gmail.com</a>
+
+    <nav class="social" aria-label="Соцсети">
+      <a href="#" target="_blank" rel="noopener">Instagram</a>
+      <a href="https://www.linkedin.com/in/ranabuvi-abdrakhmanova-339891267/" target="_blank" rel="noopener">LinkedIn</a>
+      <a href="https://www.behance.net/rinaraily" target="_blank" rel="noopener">Behance</a>
+      <a href="#" target="_blank" rel="noopener">Резюме</a>
+    </nav>
+    <p class="note">Живу в&nbsp;Алматы, работаю с&nbsp;командами по&nbsp;всему миру. Открыта для&nbsp;продуктовых задач&nbsp;— B2B SaaS, IoT и&nbsp;финтех.</p>
+
+    <p class="legal">© 2026 Рина Абдрахманова</p>
+    <a class="up" href="#top" id="toTop">Наверх <i>↑</i></a>
+  </div>
+</footer>
+
+<script>
+  /* The hero is sticky, so "past the hero" is simply one viewport of scrolling. Crossing
+     that line docks the name and the index into the left column and flips the chrome
+     from white to black — the CSS transitions do the actual travelling. */
+  const body = document.body;
+  const cases = [...document.querySelectorAll('.case')];
+  const links = [...document.querySelectorAll('.worklist a')];
+  const footer = document.querySelector('.footer');
+  const heroGrid = document.querySelector('.hero .grid');
+  const panels = [...cases, footer];                       // everything that can own the grid
+  const panelGrids = panels.map(sec => sec.querySelector('.grid'));
+
+  function onScroll(){
+    body.classList.toggle('docked', window.scrollY > window.innerHeight * 0.55);
+
+    /* Which panel is currently filling the screen? With a sticky stack the topmost one
+       whose start has passed the viewport top is the one on show. The footer counts too,
+       but it has no index entry — once it's up, no case is highlighted. */
+    let current = -1;
+    panels.forEach((sec, i) => {
+      if (sec.getBoundingClientRect().top <= window.innerHeight * 0.5) current = i;
+    });
+    links.forEach((a, i) => a.classList.toggle('current', i === current));
+
+    /* Show only the grid belonging to whatever is on top, so the lines always sit behind
+       that section's own content instead of over the cards stacked in front of it. */
+    heroGrid.classList.toggle('on', current === -1);
+    body.classList.toggle('at-end', current === panels.length - 1);
+    panelGrids.forEach((g, i) => g.classList.toggle('on', i === current));
+  }
+
+  document.getElementById('toTop').addEventListener('click', e => {
+    e.preventDefault();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+
+  addEventListener('scroll', onScroll, { passive: true });
+  addEventListener('resize', onScroll);
+  onScroll();
+
+  document.getElementById('videoClose').addEventListener('click', () => {
+    document.getElementById('video').classList.add('hidden');
+  });
+</script>
+<script src="assets/reveal.js"></script>
+</body>
+</html>

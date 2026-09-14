@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Гипотеза 3 — Apple / Google Wallet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --dark: #24232d; --dark-600: #7c7b81; --dark-200: #d3d3d5; --dark-100: #eae9ea;
+    --white: #ffffff; --light-grey: #f2f2f2; --btn-black: #222222;
+    --green: #31a456; --light-green: #e8f9f0; --brand-green: #457454; --ios-blue: #0a84ff;
+    --r-m: 12px;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Manrope', -apple-system, sans-serif; background: #3d3c44; min-height: 100vh;
+    display: flex; flex-direction: column; align-items: center; gap: 28px; padding: 48px 24px 64px;
+  }
+  .page-head { text-align: center; max-width: 760px; }
+  .page-head .kicker { display: inline-block; font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: #fff; background: rgba(255,255,255,.12); border-radius: 100px; padding: 6px 14px; margin-bottom: 14px; }
+  .page-head h1 { color: #fff; font-size: 26px; font-weight: 700; margin-bottom: 10px; }
+  .page-head p { color: rgba(255,255,255,.65); font-size: 15px; line-height: 1.55; }
+  .caption { text-align: center; max-width: 420px; }
+  .caption .tag { display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; border-radius: 100px; padding: 5px 12px; margin-bottom: 10px; color: #ffb4ab; background: rgba(255,120,110,.14); }
+  .caption h2 { color: #fff; font-size: 17px; font-weight: 700; margin-bottom: 6px; }
+  .caption p { color: rgba(255,255,255,.6); font-size: 13.5px; line-height: 1.55; }
+
+  /* ---------- phone ---------- */
+  .phone { width: 393px; height: 812px; background: var(--light-grey); border-radius: 40px; overflow: hidden; position: relative; flex-shrink: 0; box-shadow: 0 24px 80px rgba(0,0,0,.45); }
+  .status-bar { height: 54px; display: flex; align-items: center; justify-content: space-between; padding-right: 30px; position: relative; z-index: 3; }
+  .status-bar .time { width: 138px; text-align: center; font-family: -apple-system, 'SF Pro', 'Manrope', sans-serif; font-size: 17px; font-weight: 600; color: var(--dark); letter-spacing: -.2px; }
+  .status-bar .levels { display: flex; align-items: center; gap: 7px; }
+  .app-header { height: 24px; margin: 16px 16px 0; display: flex; align-items: center; position: relative; }
+  .app-header .back { width: 24px; height: 24px; background: none; border: none; padding: 0; cursor: pointer; }
+  .app-header .title { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); font-size: 16px; line-height: 24px; color: var(--dark); white-space: nowrap; }
+  .content { position: absolute; top: 94px; bottom: 0; left: 0; right: 0; overflow-y: auto; padding: 24px 16px 120px; scrollbar-width: none; }
+  .content::-webkit-scrollbar { display: none; }
+
+  /* the customer's own loyalty screen */
+  .balance { background: #fff; border-radius: var(--r-m); padding: 16px; margin-bottom: 12px; }
+  .balance .b-label { font-size: 14px; color: var(--dark-600); }
+  .balance .b-value { font-size: 32px; line-height: 40px; font-weight: 700; color: var(--dark); margin-top: 2px; }
+  .balance .b-sub { font-size: 13px; color: var(--dark-600); margin-top: 4px; }
+  .note-row { background: #fff; border-radius: var(--r-m); padding: 14px 16px; display: flex; gap: 12px; align-items: center; margin-bottom: 8px; }
+  .note-row .nr-ic { width: 40px; height: 40px; border-radius: 10px; background: var(--light-green); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .note-row .nr-t { font-size: 15px; font-weight: 700; color: var(--dark); }
+  .note-row .nr-s { font-size: 13px; line-height: 1.4; color: var(--dark-600); margin-top: 2px; }
+
+  /* the pass, as it will look inside Wallet */
+  .pass { border-radius: 14px; padding: 18px 18px 16px; color: #fff; position: relative; overflow: hidden;
+    background: linear-gradient(135deg, #4c8a5e 0%, #2f6a43 55%, #245635 100%); box-shadow: 0 14px 36px rgba(20,60,35,.35); }
+  .pass::after { content: ''; position: absolute; right: -60px; top: -70px; width: 220px; height: 220px; border-radius: 50%; background: rgba(255,255,255,.08); }
+  .pass .p-top { display: flex; justify-content: space-between; align-items: flex-start; }
+  .pass .p-brand { font-size: 13px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; opacity: .9; display: flex; align-items: center; gap: 8px; }
+  .pass .p-brand i { width: 22px; height: 22px; border-radius: 6px; background: rgba(255,255,255,.2); display: block; }
+  .pass .p-kind { font-size: 11px; opacity: .75; }
+  .pass .p-mid { margin-top: 26px; display: flex; justify-content: space-between; align-items: flex-end; }
+  .pass .p-lab { font-size: 10px; letter-spacing: .08em; text-transform: uppercase; opacity: .75; }
+  .pass .p-val { font-size: 22px; font-weight: 700; margin-top: 2px; font-variant-numeric: tabular-nums; }
+  .pass .p-val.small { font-size: 15px; font-weight: 600; }
+  .pass .barcode { margin-top: 18px; background: #fff; border-radius: 8px; padding: 10px 12px 8px; }
+  .pass .bars { height: 46px; display: flex; align-items: stretch; gap: 0; overflow: hidden; }
+  .pass .bars i { display: block; background: #111; }
+  .pass .bc-num { margin-top: 6px; text-align: center; font-family: 'Courier New', monospace; font-size: 11px; letter-spacing: .18em; color: #333; }
+
+  .btn-stack { position: absolute; left: 16px; right: 16px; bottom: 25px; z-index: 2; }
+  .wallet-btn { width: 100%; height: 55px; border: none; border-radius: 8px; background: #000; color: #fff; font-family: inherit; font-size: 16px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; }
+  .wallet-btn.done { background: #fff; color: var(--dark); border: 1px solid var(--dark-200); cursor: default; }
+
+  /* Wallet's "add pass" sheet, as iOS draws it */
+  .sheet-overlay { position: absolute; inset: 0; z-index: 20; background: rgba(0,0,0,.45); display: none; }
+  .sheet-overlay.visible { display: block; }
+  .wsheet { position: absolute; left: 0; right: 0; bottom: 0; top: 74px; background: #f2f2f7; border-radius: 16px 16px 0 0; font-family: -apple-system, 'SF Pro', 'Manrope', sans-serif; }
+  .wsheet .w-bar { height: 52px; display: flex; align-items: center; justify-content: space-between; padding: 0 16px; }
+  .wsheet .w-bar button { background: none; border: none; font-family: inherit; font-size: 17px; color: var(--ios-blue); cursor: pointer; padding: 0; }
+  .wsheet .w-bar button.add { font-weight: 600; }
+  .wsheet .w-bar .w-title { font-size: 17px; font-weight: 600; color: #000; }
+  .wsheet .w-body { padding: 8px 16px 0; }
+  .wsheet .w-pass { transform: scale(.98); transform-origin: top center; }
+  .wsheet .w-info { margin-top: 18px; background: #fff; border-radius: 12px; overflow: hidden; }
+  .wsheet .w-info div { display: flex; justify-content: space-between; padding: 12px 16px; font-size: 15px; color: #000; }
+  .wsheet .w-info div + div { border-top: .5px solid #d8d8dc; }
+  .wsheet .w-info span { color: #8a8a8e; }
+  .wsheet .w-foot { margin-top: 14px; text-align: center; font-size: 12px; color: #8a8a8e; line-height: 1.45; padding: 0 12px; }
+
+  /* the "added" moment */
+  .toast { position: absolute; left: 50%; top: 120px; transform: translate(-50%, -10px); z-index: 30; background: rgba(36,35,45,.92); color: #fff; border-radius: 100px; padding: 10px 16px; font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 8px; opacity: 0; pointer-events: none; transition: opacity .25s, transform .25s; }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+  .restart { font-family: inherit; font-size: 13px; font-weight: 600; color: rgba(255,255,255,.65); background: rgba(255,255,255,.08); border: none; border-radius: 100px; padding: 8px 18px; cursor: pointer; transition: background .15s, color .15s; }
+  .restart:hover { background: rgba(255,255,255,.18); color: #fff; }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+  .anim-in { animation: fadeUp .45s cubic-bezier(.2,.7,.3,1) both; }
+  @keyframes sheetUp { from { transform: translateY(100%); } to { transform: none; } }
+  .wsheet.anim { animation: sheetUp .4s cubic-bezier(.2,.7,.3,1) both; }
+  svg { display: block; }
+  /* ?embed=1 — inside the case page: light card ground, soft shadow, no restart (the back arrow resets), as in the Carbanara embed */
+  body.embed{background:#EAEAEA;padding:0;min-height:100vh;justify-content:center;gap:0}
+  body.embed .page-head,body.embed .caption,body.embed .restart{display:none}
+  body.embed{overflow:hidden}
+  /* Figma 89:15778: the screen is drawn at 222.73x482 with a 1px black inside stroke and r23 — at 1x that is 2px (Chrome snaps 1.7 down to 1) and r39 */
+  body.embed .phone{box-shadow:none;border:2px solid #000;border-radius:39px}
+</style>
+</head>
+<body>
+
+<div class="page-head">
+  <div class="kicker">Гипотеза 3</div>
+  <h1>Карта в Apple / Google Wallet</h1>
+  <p>Предположение: никаких физических карт — клиент добавляет цифровую карту лояльности в Wallet и показывает штрихкод на мойке.</p>
+</div>
+
+<div class="phone">
+  <div class="status-bar"><div class="time">9:41</div><div class="levels" data-statusicons></div></div>
+  <div class="app-header">
+    <button class="back" data-caret aria-label="Начать сначала" onclick="resetAll()"></button>
+    <div class="title">Моя карта</div>
+  </div>
+  <div class="content" id="content"></div>
+  <div class="btn-stack"><button class="wallet-btn" id="walletBtn" onclick="openSheet()"><span data-wallet></span>Добавить в Apple Wallet</button></div>
+
+  <div class="sheet-overlay" id="overlay">
+    <div class="wsheet" id="wsheet">
+      <div class="w-bar"><button onclick="closeSheet()">Отменить</button><div class="w-title">Wallet</div><button class="add" onclick="addPass()">Добавить</button></div>
+      <div class="w-body">
+        <div class="w-pass" id="sheetPass"></div>
+        <div class="w-info">
+          <div>Организация<span>CloudCore Wash</span></div>
+          <div>Тип карты<span>Карта лояльности</span></div>
+          <div>Автообновление<span>Включено</span></div>
+        </div>
+        <div class="w-foot">Карта будет доступна в Wallet и обновит баланс после каждой мойки.</div>
+      </div>
+    </div>
+  </div>
+  <div class="toast" id="toast"><span data-check></span>Карта добавлена в Wallet</div>
+</div>
+
+<div class="caption">
+  <div class="tag">Гипотеза отклонена</div>
+  <h2>Отличный UX — не для этой аудитории</h2>
+  <p>Клиенты моек самообслуживания сильно различаются по возрасту и цифровой грамотности — цифровая карта работает не для всех. А владельцу важна физическая карта: это и брендинг, и понятный осязаемый предмет для клиента.</p>
+</div>
+
+<button class="restart" onclick="resetAll()">↺&nbsp; Начать сначала</button>
+
+<script>
+const I = {
+  caret: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M15 4.5L7.5 12L15 19.5" stroke="#24232d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+  wallet: `<svg width="22" height="22" viewBox="0 0 22 22" fill="none"><rect x="2" y="5" width="18" height="13" rx="3" stroke="#fff" stroke-width="1.7"/><path d="M2 9.5h18" stroke="#fff" stroke-width="1.7"/><rect x="13.5" y="12" width="4" height="3" rx="1" fill="#fff"/></svg>`,
+  check: `<svg width="16" height="16" viewBox="0 0 18 18" fill="none"><path d="M3.5 9.5L7 13L14.5 5" stroke="#7dff9b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+  leaf: `<svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M4 16c0-6 4-10 12-11-1 8-5 12-11 12" stroke="#31a456" stroke-width="1.6" stroke-linejoin="round"/><path d="M5 15c2-3 5-6 8-8" stroke="#31a456" stroke-width="1.6" stroke-linecap="round"/></svg>`,
+  cellular: `<svg width="19" height="12" viewBox="0 0 19 12" fill="#24232d"><rect x="0" y="7.5" width="3" height="4.2" rx="1"/><rect x="5.1" y="5" width="3" height="6.7" rx="1"/><rect x="10.2" y="2.5" width="3" height="9.2" rx="1"/><rect x="15.3" y="0" width="3" height="11.7" rx="1"/></svg>`,
+  wifi: `<svg width="17" height="12" viewBox="0 0 17 12" fill="#24232d"><path d="M8.5 11.6a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Z"/><path d="M8.5 5.9c1.5 0 2.87.55 3.92 1.47a.55.55 0 0 0 .76-.03l.72-.74a.53.53 0 0 0-.03-.78A7.5 7.5 0 0 0 8.5 3.9a7.5 7.5 0 0 0-5.37 1.92.53.53 0 0 0-.03.78l.72.74c.2.21.54.22.76.03A5.94 5.94 0 0 1 8.5 5.9Z"/><path d="M8.5 1.55A10.6 10.6 0 0 1 15.7 4.4a.55.55 0 0 0 .77-.02l.73-.74a.53.53 0 0 0-.02-.77A12.2 12.2 0 0 0 8.5 0C5.3 0 2.38 1.1.82 2.87a.53.53 0 0 0-.02.77l.73.74c.2.21.55.22.77.02A10.6 10.6 0 0 1 8.5 1.55Z"/></svg>`,
+  battery: `<svg width="28" height="13" viewBox="0 0 28 13" fill="none"><rect x="0.5" y="0.5" width="24" height="12" rx="4" stroke="#24232d" stroke-opacity=".35"/><rect x="2" y="2" width="21" height="9" rx="2.5" fill="#24232d"/><path d="M26.3 4.3v4.4c1-.36 1.7-1.2 1.7-2.2s-.7-1.84-1.7-2.2Z" fill="#24232d" fill-opacity=".4"/></svg>`
+};
+
+// a deterministic 1D barcode so the pass looks real and identical on every run
+const BARS = '2113121131214111312113111412211131121113141122113111312211411131'.split('').map(Number);
+const barcode = () => `<div class="barcode"><div class="bars">${BARS.map((w, i) => `<i style="width:${w * 1.6}px;background:${i % 2 ? '#fff' : '#111'}"></i>`).join('')}</div><div class="bc-num">7890 1234 5678</div></div>`;
+const pass = () => `
+  <div class="pass">
+    <div class="p-top"><div class="p-brand"><i></i>CloudCore Wash</div><div class="p-kind">Карта лояльности</div></div>
+    <div class="p-mid">
+      <div><div class="p-lab">Баланс</div><div class="p-val">1 250 ₸</div></div>
+      <div style="text-align:right"><div class="p-lab">Клиент</div><div class="p-val small">Алекс</div></div>
+    </div>
+    ${barcode()}
+  </div>`;
+
+const state = { added: false, sheetOpen: false };
+
+function render() {
+  document.getElementById('content').innerHTML = `
+    <div class="balance"><div class="b-label">Бонусный баланс</div><div class="b-value">1 250 ₸</div><div class="b-sub">Начисляем 5% с каждой мойки</div></div>
+    ${state.added
+      ? `<div class="anim-in">${pass()}</div>
+         <div class="note-row anim-in" style="margin-top:12px"><div class="nr-ic">${I.leaf}</div><div><div class="nr-t">Карта в Wallet</div><div class="nr-s">Покажите штрихкод на терминале — баланс обновится сам.</div></div></div>`
+      : `<div class="note-row"><div class="nr-ic">${I.leaf}</div><div><div class="nr-t">Карта без пластика</div><div class="nr-s">Добавьте её в Wallet, чтобы копить бонусы по штрихкоду.</div></div></div>`}`;
+  const b = document.getElementById('walletBtn');
+  b.className = 'wallet-btn' + (state.added ? ' done' : '');
+  b.innerHTML = state.added ? 'Карта уже в Wallet' : `<span>${I.wallet}</span>Добавить в Apple Wallet`;
+  b.onclick = state.added ? null : openSheet;
+}
+function openSheet() {
+  state.sheetOpen = true;
+  document.getElementById('sheetPass').innerHTML = pass();
+  document.getElementById('overlay').classList.add('visible');
+  const s = document.getElementById('wsheet'); s.classList.remove('anim'); void s.offsetWidth; s.classList.add('anim');
+}
+function closeSheet() { state.sheetOpen = false; document.getElementById('overlay').classList.remove('visible'); }
+function addPass() {
+  closeSheet(); state.added = true; render();
+  const t = document.getElementById('toast'); t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2200);
+}
+function resetAll() { Object.assign(state, { added: false, sheetOpen: false }); closeSheet(); render(); }
+
+document.querySelectorAll('[data-caret]').forEach(el => el.innerHTML = I.caret);
+document.querySelectorAll('[data-wallet]').forEach(el => el.innerHTML = I.wallet);
+document.querySelectorAll('[data-check]').forEach(el => el.innerHTML = I.check);
+document.querySelectorAll('[data-statusicons]').forEach(el => el.innerHTML = I.cellular + I.wifi + I.battery);
+render();
+</script>
+<script>if(location.search.includes("embed=1"))document.body.classList.add("embed");</script>
+</body>
+</html>

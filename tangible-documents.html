@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TANGIBLE — Documents</title>
+<link href="https://api.fontshare.com/v2/css?f[]=general-sans@400,500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#0F0F0F;
+    --gray:#868686;
+    --gray2:#4B4B4B;
+    --green:#005B41;
+    --green-text:#277800;
+    --green-chip:#D2F2C2;
+    --green-soft:#D8F0E4;
+    --orange:#DD8116;
+    --orange-bg:#FAF5E4;
+    --red:#C10C0C;
+    --panel:#F7F8FA;
+    --chip-gray:#F3F3F3;
+    --border:#E8E8E8;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'General Sans',Inter,system-ui,sans-serif;background:#fff;color:var(--ink);font-size:16px}
+  button{font-family:inherit;cursor:pointer;background:none;border:0;color:inherit}
+  .page{width:1440px;margin:0 auto}
+
+  /* ---------- top bar ---------- */
+  .topbar{height:80px;display:flex;align-items:center;padding:0 48px;border-bottom:1px solid var(--border)}
+  .logo{border:2px solid var(--ink);padding:7px 12px;font-weight:500;letter-spacing:.35em;font-size:15px}
+  .topnav{margin-left:auto;display:flex;gap:32px;font-weight:500}
+  .topnav a{color:var(--gray2);text-decoration:none;padding-bottom:6px}
+  .topnav a.active{color:var(--green);border-bottom:2px solid var(--green)}
+  .topnav a.signout{color:var(--red)}
+
+  /* ---------- big nav ---------- */
+  .bignav{display:flex;gap:48px;padding:22px 48px 0;border-bottom:1px solid var(--border)}
+  .bignav a{font-size:42px;font-weight:500;color:var(--gray);text-decoration:none;padding-bottom:18px}
+  .bignav a.active{color:var(--ink);border-bottom:4px solid var(--ink)}
+
+  /* ---------- toolbar ---------- */
+  .toolbar{display:flex;align-items:center;padding:28px 48px 24px}
+  .deal-tabs{display:flex;background:#fff;border:1px solid var(--border);border-radius:24px}
+  .deal-tabs button{padding:11px 20px;border-radius:24px;font-weight:500;font-size:16px}
+  .deal-tabs button.on{background:var(--ink);color:#fff}
+  .filter-btn{margin-left:auto;width:44px;height:44px;border-radius:50%;background:#fff;border:1px solid var(--border);display:flex;align-items:center;justify-content:center}
+  .search{margin-left:16px;width:432px;height:44px;border:1px solid var(--border);border-radius:12px;display:flex;align-items:center;padding:0 14px;gap:10px;background:#fff}
+  .search input{border:0;outline:0;font:inherit;color:var(--ink);width:100%;background:none}
+  .search input::placeholder{color:var(--gray2)}
+  svg.ico{width:20px;height:20px;stroke:var(--gray2);fill:none;stroke-width:1.6}
+
+  /* ---------- table ---------- */
+  .tbl{margin:0 48px 60px;border:1px solid var(--border);border-radius:16px;overflow:hidden}
+  .thead{display:flex;align-items:center;height:48px;background:#fff;border-bottom:1px solid var(--border);font-size:13px;font-weight:500;color:var(--gray)}
+  .thead span:first-child{color:var(--ink)}
+  .trow{display:flex;align-items:center;height:62px;background:#fff;font-size:14px;border-bottom:1px solid var(--border)}
+  .trow:last-child{border-bottom:0}
+  .c-name{width:216px;padding-left:20px;display:flex;align-items:center;gap:10px;font-weight:500}
+  .c-name .chev{cursor:pointer;display:flex}
+  .c-name .chev svg{width:16px;height:16px;stroke:var(--ink);stroke-width:2;fill:none;transition:transform .25s}
+  .c{width:133px;flex:none}
+  .c-dots{margin-left:auto;padding-right:24px}
+  .sort{color:inherit;opacity:.7;font-size:10px;margin-left:4px}
+  .chip{display:inline-block;padding:5px 12px;border-radius:8px;font-weight:500;font-size:14px}
+  .chip.waiting{background:var(--orange-bg);color:var(--orange);border:1px solid #F0DFB6}
+  .chip.available{background:var(--green-chip);color:var(--green-text);border:1px solid #A9DC8C}
+  .chip.unavailable{background:var(--chip-gray);color:var(--gray);border:1px solid var(--border)}
+  .dots-btn{padding:6px 8px;border-radius:8px}
+  .dots-btn:hover{background:var(--chip-gray)}
+  .dots-btn svg{width:16px;height:16px;fill:var(--ink)}
+
+  /* ---------- expanded panel ---------- */
+  .panel{background:var(--panel);padding:0 24px;border-bottom:1px solid var(--border)}
+  .sec{border-bottom:1px solid var(--border)}
+  .sec:last-of-type{border-bottom:0}
+  .sec-head{display:flex;align-items:center;gap:12px;padding:24px 0;font-weight:500;font-size:14px;cursor:pointer}
+  .sec-head svg{width:16px;height:16px;stroke:var(--ink);stroke-width:2;fill:none;transition:transform .25s}
+  .sec.closed .sec-head svg{transform:rotate(-180deg)}
+  .sec-body{overflow:hidden}
+  .sec.closed .sec-body{display:none}
+  .approve-all{margin-left:auto;display:flex;align-items:center;gap:8px;border:1.5px solid var(--green);color:var(--green);
+               border-radius:22px;padding:9px 18px;font-weight:500;font-size:14px;background:#fff}
+  .approve-all svg{width:15px;height:15px;stroke:var(--green);stroke-width:2.2;fill:none}
+
+  /* doc filter tabs */
+  .doc-tabs{display:flex;gap:28px;padding:8px 0 0}
+  .doc-tab{display:flex;align-items:center;gap:8px;font-weight:500;font-size:14px;color:var(--gray2);padding-bottom:12px;border-bottom:2px solid transparent}
+  .doc-tab .cnt{width:18px;height:18px;border-radius:50%;background:var(--chip-gray);font-size:10px;display:flex;align-items:center;justify-content:center}
+  .doc-tab.on{color:var(--green);border-color:var(--green)}
+  .doc-tab.on .cnt{background:var(--green-soft);color:var(--green)}
+
+  /* doc grid */
+  .doc-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;padding:20px 0 28px}
+  .doc{background:#fff;border-radius:10px;height:48px;display:flex;align-items:center;padding:0 12px 0 14px;gap:10px;position:relative}
+  .doc .fico{flex:none;display:flex}
+  .doc .fico svg{width:18px;height:18px;stroke:var(--ink);stroke-width:1.5;fill:none}
+  .doc .dn{font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .doc .acts{margin-left:auto;display:flex;align-items:center;gap:2px;flex:none}
+  .icon-btn{padding:6px;border-radius:6px;display:flex}
+  .icon-btn:hover{background:var(--chip-gray)}
+  .icon-btn svg{width:17px;height:17px;fill:none;stroke-width:1.8}
+  .icon-btn.ok svg{stroke:var(--green)}
+  .icon-btn.dl svg{stroke:var(--green)}
+  .icon-btn.menu svg{fill:var(--ink);stroke:none;width:15px;height:15px}
+  .warn{padding:6px;display:flex;cursor:default;position:relative}
+  .warn svg{width:18px;height:18px;stroke:var(--orange);stroke-width:1.7;fill:none}
+  .warn .tip{position:absolute;bottom:32px;right:-10px;background:#1D1D1B;color:#fff;font-size:13px;line-height:1.45;
+             padding:10px 14px;border-radius:8px;width:300px;opacity:0;pointer-events:none;transition:opacity .15s;z-index:20}
+  .warn:hover .tip{opacity:1}
+  .empty{padding:8px 0 28px;color:var(--gray2);font-size:14px}
+
+  .export-btn{display:inline-block;background:var(--green-soft);color:var(--green);font-weight:500;font-size:14px;
+              border-radius:22px;padding:11px 20px;margin:4px 0 28px}
+
+  /* ---------- dropdown ---------- */
+  #ddown{position:absolute;background:#fff;border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,.14);padding:8px;z-index:40;display:none;min-width:170px}
+  #ddown button{display:flex;align-items:center;gap:10px;width:100%;padding:11px 12px;border-radius:8px;font-size:15px;text-align:left}
+  #ddown button:hover{background:var(--panel)}
+  #ddown button.danger{color:var(--red)}
+  #ddown svg{width:17px;height:17px;stroke:currentColor;stroke-width:1.7;fill:none}
+
+  /* ---------- modals ---------- */
+  .mask{position:fixed;inset:0;background:rgba(15,15,15,.45);display:none;align-items:center;justify-content:center;z-index:50}
+  .mask.show{display:flex}
+  .modal{background:#fff;border-radius:16px;width:496px;padding:32px;position:relative}
+  .modal h3{font-size:24px;font-weight:500;line-height:1.25;max-width:400px}
+  .modal p{margin-top:12px;color:var(--gray2);line-height:1.5}
+  .modal .note-l{margin-top:20px;color:var(--ink);font-weight:500}
+  .modal textarea{margin-top:10px;width:100%;min-height:72px;resize:vertical;border:1px solid var(--border);border-radius:12px;
+                  padding:12px;font:inherit;font-size:15px;outline-color:var(--green)}
+  .m-actions{margin-top:28px;display:flex;justify-content:flex-end;gap:10px}
+  .btn{padding:11px 22px;border-radius:22px;font-weight:500;font-size:15px}
+  .btn.ghost{color:var(--ink)}
+  .btn.ghost:hover{background:var(--chip-gray)}
+  .btn.green{background:var(--green);color:#fff}
+  .btn.red{background:var(--red);color:#fff}
+  .m-x{position:absolute;top:20px;right:20px;padding:6px}
+  .m-x svg{width:16px;height:16px;stroke:var(--gray2);stroke-width:2;fill:none}
+
+  /* toast */
+  #toast{position:fixed;left:50%;bottom:36px;transform:translateX(-50%) translateY(12px);background:#1D1D1B;color:#fff;
+         padding:12px 22px;border-radius:24px;font-size:14px;opacity:0;transition:.25s;pointer-events:none;z-index:60}
+  #toast.show{opacity:1;transform:translateX(-50%)}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="topbar">
+    <div class="logo">TANGIBLE</div>
+    <nav class="topnav">
+      <a href="#" class="active">Home</a>
+      <a href="#">Market Sentiment Tracker</a>
+      <a href="#">FAQs/Help</a>
+      <a href="#" class="signout">Sign Out</a>
+    </nav>
+  </div>
+
+  <nav class="bignav">
+    <a href="#">Dashboard</a><a href="#">Marketplace</a><a href="#">Analytics</a><a href="#">Transactions</a><a href="#" class="active">Documents</a>
+  </nav>
+
+  <div class="toolbar">
+    <div class="deal-tabs">
+      <button class="on">Active deals (7)</button>
+      <button onclick="toast('Closed deals are out of this prototype')">Closed (10)</button>
+    </div>
+    <button class="filter-btn" title="Filters">
+      <svg class="ico" style="stroke:var(--green)" viewBox="0 0 20 20"><path d="M3 4 h14 L12 10.5 V16 l-4 -2 v-3.5 z" stroke-linejoin="round"/></svg>
+    </button>
+    <div class="search">
+      <svg class="ico" viewBox="0 0 20 20"><circle cx="9" cy="9" r="5.5"/><path d="M13.5 13.5 L17 17" stroke-linecap="round"/></svg>
+      <input id="q" placeholder="Search by keywords" oninput="renderDocs()">
+    </div>
+  </div>
+
+  <div class="tbl">
+    <div class="thead">
+      <span class="c-name" style="font-weight:500">Name <span class="sort">⇅</span></span>
+      <span class="c">Listing ID <span class="sort">⇅</span></span>
+      <span class="c">Client ID <span class="sort">⇅</span></span>
+      <span class="c">Status <span class="sort">⇅</span></span>
+      <span class="c">Type <span class="sort">⇅</span></span>
+      <span class="c">KYC Availability <span class="sort">⇅</span></span>
+      <span class="c">Start date <span class="sort">⇅</span></span>
+      <span class="c">End date <span class="sort">⇅</span></span>
+      <span class="c">Documents <span class="sort">⇅</span></span>
+    </div>
+
+    <div class="trow">
+      <span class="c-name">
+        <span class="chev" id="dealChev" onclick="togglePanel()"><svg viewBox="0 0 16 16" style="transform:rotate(180deg)" ><path d="M3 10 L8 5 l5 5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        Chatcau D Ax
+      </span>
+      <span class="c">041224</span><span class="c">041224</span>
+      <span class="c"><span class="chip waiting">Waiting</span></span>
+      <span class="c">Purchase</span>
+      <span class="c"><span class="chip available">Available</span></span>
+      <span class="c">04-12-24</span><span class="c">04-22-24</span><span class="c">12</span>
+      <span class="c-dots"><button class="dots-btn"><svg viewBox="0 0 16 16"><circle cx="8" cy="3" r="1.4"/><circle cx="8" cy="8" r="1.4"/><circle cx="8" cy="13" r="1.4"/></svg></button></span>
+    </div>
+
+    <div class="panel" id="panel">
+      <div class="sec closed">
+        <div class="sec-head" onclick="this.parentElement.classList.toggle('closed')">
+          <svg viewBox="0 0 16 16"><path d="M3 10 L8 5 l5 5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Closing documents
+        </div>
+        <div class="sec-body"><div class="empty">No closing documents yet</div></div>
+      </div>
+
+      <div class="sec">
+        <div class="sec-head" onclick="if(event.target.closest('.approve-all'))return;this.parentElement.classList.toggle('closed')">
+          <svg viewBox="0 0 16 16"><path d="M3 10 L8 5 l5 5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          KYC documents
+          <button class="approve-all" onclick="openApproveAll()">
+            <svg viewBox="0 0 16 16"><path d="M2.5 8.5 L6.5 12.5 L13.5 4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Approve All
+          </button>
+        </div>
+        <div class="sec-body">
+          <div class="doc-tabs" id="docTabs"></div>
+          <div class="doc-grid" id="docGrid"></div>
+        </div>
+      </div>
+
+      <div class="sec closed">
+        <div class="sec-head" onclick="this.parentElement.classList.toggle('closed')">
+          <svg viewBox="0 0 16 16"><path d="M3 10 L8 5 l5 5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Additional documents
+        </div>
+        <div class="sec-body"><div class="empty">No additional documents</div></div>
+      </div>
+
+      <button class="export-btn" onclick="toast('Preparing export package…')">Export Package</button>
+    </div>
+
+    <div class="trow"><span class="c-name"><span class="chev"><svg viewBox="0 0 16 16"><path d="M3 6 L8 11 l5 -5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Portfolio III</span><span class="c">041224</span><span class="c">041224</span><span class="c"><span class="chip waiting">Waiting</span></span><span class="c">Sale</span><span class="c"><span class="chip unavailable">Unavailable</span></span><span class="c">04-12-24</span><span class="c">04-22-24</span><span class="c">10</span><span class="c-dots"><button class="dots-btn"><svg viewBox="0 0 16 16"><circle cx="8" cy="3" r="1.4"/><circle cx="8" cy="8" r="1.4"/><circle cx="8" cy="13" r="1.4"/></svg></button></span></div>
+    <div class="trow"><span class="c-name"><span class="chev"><svg viewBox="0 0 16 16"><path d="M3 6 L8 11 l5 -5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Portfolio I</span><span class="c">041224</span><span class="c">041224</span><span class="c"><span class="chip waiting">Waiting</span></span><span class="c">Sale</span><span class="c"><span class="chip available">Available</span></span><span class="c">04-12-24</span><span class="c">04-22-24</span><span class="c">7</span><span class="c-dots"><button class="dots-btn"><svg viewBox="0 0 16 16"><circle cx="8" cy="3" r="1.4"/><circle cx="8" cy="8" r="1.4"/><circle cx="8" cy="13" r="1.4"/></svg></button></span></div>
+    <div class="trow"><span class="c-name"><span class="chev"><svg viewBox="0 0 16 16"><path d="M3 6 L8 11 l5 -5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Jetstone Fund I</span><span class="c">041224</span><span class="c">041224</span><span class="c"><span class="chip waiting">Waiting</span></span><span class="c">Sale</span><span class="c"><span class="chip unavailable">Unavailable</span></span><span class="c">04-12-24</span><span class="c">04-22-24</span><span class="c">8</span><span class="c-dots"><button class="dots-btn"><svg viewBox="0 0 16 16"><circle cx="8" cy="3" r="1.4"/><circle cx="8" cy="8" r="1.4"/><circle cx="8" cy="13" r="1.4"/></svg></button></span></div>
+  </div>
+</div>
+
+<!-- dropdown -->
+<div id="ddown">
+  <button onclick="ddAction('download')"><svg viewBox="0 0 16 16"><path d="M8 2 v8 M4.5 7 L8 10.5 L11.5 7 M3 13.5 h10" stroke-linecap="round" stroke-linejoin="round"/></svg>Download</button>
+  <button id="ddReject" onclick="ddAction('reject')"><svg viewBox="0 0 16 16"><path d="M3.5 3.5 L12.5 12.5 M12.5 3.5 L3.5 12.5" stroke-linecap="round"/></svg>Reject</button>
+  <button class="danger" onclick="ddAction('delete')"><svg viewBox="0 0 16 16"><path d="M2.5 4 h11 M6 4 V2.5 h4 V4 M4 4 l.8 9.5 h6.4 L12 4 M6.7 6.5 v4.5 M9.3 6.5 v4.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Delete</button>
+</div>
+
+<!-- approve modal -->
+<div class="mask" id="mApprove">
+  <div class="modal">
+    <button class="m-x" onclick="closeMasks()"><svg viewBox="0 0 16 16"><path d="M3 3 L13 13 M13 3 L3 13" stroke-linecap="round"/></svg></button>
+    <h3 id="mApproveTitle">Approve document</h3>
+    <p id="mApproveBody"></p>
+    <div class="m-actions">
+      <button class="btn ghost" onclick="closeMasks()">Cancel</button>
+      <button class="btn green" onclick="confirmApprove()">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<!-- approve all modal -->
+<div class="mask" id="mApproveAll">
+  <div class="modal">
+    <button class="m-x" onclick="closeMasks()"><svg viewBox="0 0 16 16"><path d="M3 3 L13 13 M13 3 L3 13" stroke-linecap="round"/></svg></button>
+    <h3>Approve all documents</h3>
+    <p>By selecting to Approve all documents, you are confirming the final submission of these documents.</p>
+    <div class="m-actions">
+      <button class="btn ghost" onclick="closeMasks()">Cancel</button>
+      <button class="btn green" onclick="confirmApproveAll()">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<!-- reject modal -->
+<div class="mask" id="mReject">
+  <div class="modal">
+    <button class="m-x" onclick="closeMasks()"><svg viewBox="0 0 16 16"><path d="M3 3 L13 13 M13 3 L3 13" stroke-linecap="round"/></svg></button>
+    <h3>Rejection reason</h3>
+    <p>Please confirm that you would like to reject this document and provide a reason for your decision</p>
+    <div class="note-l">Note</div>
+    <textarea id="rejectNote" placeholder="Enter comments here.."></textarea>
+    <div class="m-actions">
+      <button class="btn ghost" onclick="closeMasks()">Close</button>
+      <button class="btn red" onclick="confirmReject()">Reject</button>
+    </div>
+  </div>
+</div>
+
+<!-- delete modal -->
+<div class="mask" id="mDelete">
+  <div class="modal">
+    <button class="m-x" onclick="closeMasks()"><svg viewBox="0 0 16 16"><path d="M3 3 L13 13 M13 3 L3 13" stroke-linecap="round"/></svg></button>
+    <h3>Are you sure you want to delete the document?</h3>
+    <p>By selecting Delete this document, you are confirming the deletion of this document</p>
+    <div class="m-actions">
+      <button class="btn ghost" onclick="closeMasks()">Cancel</button>
+      <button class="btn red" onclick="confirmDelete()">Delete</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+  const REASON_SAMPLE = 'Please review the requirements and re-upload the correct version to proceed with the approval process.';
+  let docs = [
+    {n:'Customer Verification Document 1.pdf', s:'needs'},
+    {n:'Client Identity Verification.pdf', s:'needs'},
+    {n:'Know Your Customer Guidelines.pdf', s:'needs'},
+    {n:'Identity Confirmation Document.pdf', s:'needs'},
+    {n:'KYC Compliance Report.pdf', s:'needs'},
+    {n:'Customer Due Diligence.pdf', s:'needs'},
+    {n:'KYC Procedures Manual.pdf', s:'needs'},
+    {n:'Client Verification Checklist.pdf', s:'needs'},
+    {n:'KYC Documentation Overview.pdf', s:'needs'},
+    {n:'Listing agreement.pdf', s:'approved'},
+    {n:'Sale/purchase agreement template.pdf', s:'approved'},
+    {n:'Transfer agreement template.pdf', s:'approved'},
+    {n:'Quarterly report.pdf', s:'approved'},
+    {n:'Client Onboarding Summary.pdf', s:'approved'},
+    {n:'Proof of Address.pdf', s:'rejected', reason:REASON_SAMPLE},
+    {n:'Bank Statement Q3.pdf', s:'rejected', reason:REASON_SAMPLE}
+  ];
+  let tab = 'needs';
+  let target = null;   // doc for pending modal action
+  const $ = s => document.querySelector(s);
+
+  /* ---------- render ---------- */
+  function count(s){ return docs.filter(d=>d.s===s).length; }
+  function renderTabs(){
+    const T=[['needs','Needs approval'],['approved','Approved'],['rejected','Rejected']];
+    $('#docTabs').innerHTML = T.map(([k,l])=>
+      `<button class="doc-tab ${tab===k?'on':''}" onclick="tab='${k}';renderDocs()">${l}<span class="cnt">${count(k)}</span></button>`).join('');
+  }
+  function fileIco(){ return `<span class="fico"><svg viewBox="0 0 18 18"><path d="M4 1.5 h7 l3 3 V16.5 H4 z M11 1.5 v3 h3 M6.5 9 h5 M6.5 12 h5" stroke-linejoin="round"/></svg></span>`; }
+  function renderDocs(){
+    renderTabs();
+    const q = ($('#q').value||'').toLowerCase();
+    const list = docs.filter(d=>d.s===tab && d.n.toLowerCase().includes(q));
+    if(!list.length){ $('#docGrid').innerHTML = `<div class="empty">No documents here</div>`; return; }
+    $('#docGrid').innerHTML = list.map(d=>{
+      const i = docs.indexOf(d);
+      let acts='';
+      if(d.s==='needs') acts = `
+        <button class="icon-btn ok" title="Approve" onclick="openApprove(${i})"><svg viewBox="0 0 17 17"><path d="M2.5 9 L7 13.5 L14.5 4.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        <button class="icon-btn menu" title="More" onclick="openMenu(event,${i})"><svg viewBox="0 0 16 16"><circle cx="8" cy="3" r="1.5"/><circle cx="8" cy="8" r="1.5"/><circle cx="8" cy="13" r="1.5"/></svg></button>`;
+      if(d.s==='approved') acts = `
+        <button class="icon-btn dl" title="Download" onclick="toast('Downloading ${d.n.replace(/'/g,"\\'")}…')"><svg viewBox="0 0 17 17"><path d="M8.5 2.5 v8 M5 7.5 L8.5 11 L12 7.5 M3 14 h11" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        <button class="icon-btn menu" title="More" onclick="openMenu(event,${i})"><svg viewBox="0 0 16 16"><circle cx="8" cy="3" r="1.5"/><circle cx="8" cy="8" r="1.5"/><circle cx="8" cy="13" r="1.5"/></svg></button>`;
+      if(d.s==='rejected') acts = `
+        <span class="warn"><svg viewBox="0 0 18 18"><circle cx="9" cy="9" r="7"/><path d="M9 5.5 v4.2" stroke-linecap="round"/><circle cx="9" cy="12.6" r=".9" fill="var(--orange)" stroke="none"/></svg><span class="tip">${d.reason||''}</span></span>
+        <button class="icon-btn menu" title="More" onclick="openMenu(event,${i})"><svg viewBox="0 0 16 16"><circle cx="8" cy="3" r="1.5"/><circle cx="8" cy="8" r="1.5"/><circle cx="8" cy="13" r="1.5"/></svg></button>`;
+      return `<div class="doc">${fileIco()}<span class="dn" title="${d.n}">${d.n}</span><span class="acts">${acts}</span></div>`;
+    }).join('');
+  }
+
+  /* ---------- dropdown ---------- */
+  function openMenu(e, i){
+    e.stopPropagation();
+    target = docs[i];
+    const dd = $('#ddown');
+    $('#ddReject').style.display = target.s==='needs' ? 'flex' : 'none';
+    const r = e.currentTarget.getBoundingClientRect();
+    dd.style.display='block';
+    dd.style.left = Math.min(r.left, window.innerWidth-200) + window.scrollX + 'px';
+    dd.style.top = r.bottom + 6 + window.scrollY + 'px';
+  }
+  document.addEventListener('click', ()=>{ $('#ddown').style.display='none'; });
+  function ddAction(a){
+    $('#ddown').style.display='none';
+    if(a==='download'){ toast('Downloading ' + target.n + '…'); }
+    if(a==='reject'){ $('#rejectNote').value=''; $('#mReject').classList.add('show'); }
+    if(a==='delete'){ $('#mDelete').classList.add('show'); }
+  }
+
+  /* ---------- actions ---------- */
+  function openApprove(i){
+    target = docs[i];
+    $('#mApproveTitle').textContent = 'Approve ' + target.n.replace(/\.pdf$/i,'');
+    $('#mApproveBody').innerHTML = 'By selecting to Approve “' + target.n + '” document, you are confirming the final submission of this document.';
+    $('#mApprove').classList.add('show');
+  }
+  function confirmApprove(){
+    target.s = 'approved'; delete target.reason;
+    closeMasks(); renderDocs();
+    toast(target.n + ' approved');
+  }
+  function openApproveAll(){
+    if(!count('needs')){ toast('Nothing to approve'); return; }
+    $('#mApproveAll').classList.add('show');
+  }
+  function confirmApproveAll(){
+    const n = count('needs');
+    docs.forEach(d=>{ if(d.s==='needs') d.s='approved'; });
+    closeMasks(); tab='approved'; renderDocs();
+    toast(n + ' documents approved');
+  }
+  function confirmReject(){
+    const note = $('#rejectNote').value.trim();
+    if(!note){ $('#rejectNote').focus(); return; }
+    target.s='rejected'; target.reason = note;
+    closeMasks(); renderDocs();
+    toast(target.n + ' rejected');
+  }
+  function confirmDelete(){
+    docs = docs.filter(d=>d!==target);
+    closeMasks(); renderDocs();
+    toast('Document deleted');
+  }
+  function closeMasks(){ document.querySelectorAll('.mask').forEach(m=>m.classList.remove('show')); }
+  document.querySelectorAll('.mask').forEach(m=>m.addEventListener('click', e=>{ if(e.target===m) closeMasks(); }));
+
+  function togglePanel(){
+    const p = $('#panel'); const open = p.style.display!=='none';
+    p.style.display = open ? 'none' : '';
+    $('#dealChev svg').style.transform = open ? '' : 'rotate(180deg)';
+  }
+
+  let toastTimer;
+  function toast(msg){
+    const t=$('#toast'); t.textContent=msg; t.classList.add('show');
+    clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.classList.remove('show'),2000);
+  }
+
+  renderDocs();
+</script>
+</body>
+</html>

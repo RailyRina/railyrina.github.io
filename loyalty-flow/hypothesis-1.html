@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Гипотеза 1 — Ручной ввод карт</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --dark: #24232d;
+    --dark-600: #7c7b81;
+    --dark-200: #d3d3d5;
+    --dark-100: #eae9ea;
+    --white: #ffffff;
+    --light-grey: #f2f2f2;
+    --btn-black: #222222;
+    --green: #31a456;
+    --light-green: #e8f9f0;
+    --brand-green: #457454;
+    --r-m: 12px;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Manrope', -apple-system, sans-serif;
+    background: #3d3c44;
+    min-height: 100vh;
+    display: flex; flex-direction: column; align-items: center;
+    gap: 28px; padding: 48px 24px 64px;
+  }
+  .page-head { text-align: center; max-width: 760px; }
+  .page-head .kicker {
+    display: inline-block; font-size: 12px; font-weight: 700; letter-spacing: .08em;
+    text-transform: uppercase; color: #fff; background: rgba(255,255,255,.12);
+    border-radius: 100px; padding: 6px 14px; margin-bottom: 14px;
+  }
+  .page-head h1 { color: #fff; font-size: 26px; font-weight: 700; margin-bottom: 10px; }
+  .page-head p { color: rgba(255,255,255,.65); font-size: 15px; line-height: 1.55; }
+
+  .caption { text-align: center; max-width: 420px; }
+  .caption .tag {
+    display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: .06em;
+    text-transform: uppercase; border-radius: 100px; padding: 5px 12px; margin-bottom: 10px;
+    color: #ffb4ab; background: rgba(255,120,110,.14);
+  }
+  .caption h2 { color: #fff; font-size: 17px; font-weight: 700; margin-bottom: 6px; }
+  .caption p { color: rgba(255,255,255,.6); font-size: 13.5px; line-height: 1.55; }
+
+  /* ---------- phone ---------- */
+  .phone {
+    width: 393px; height: 812px;
+    background: var(--light-grey);
+    border-radius: 40px; overflow: hidden;
+    position: relative; flex-shrink: 0;
+    box-shadow: 0 24px 80px rgba(0,0,0,.45);
+  }
+  .status-bar {
+    height: 54px; display: flex; align-items: center; justify-content: space-between;
+    padding-right: 30px; position: relative; z-index: 3;
+  }
+  .status-bar .time {
+    width: 138px; text-align: center;
+    font-family: -apple-system, 'SF Pro', 'Manrope', sans-serif;
+    font-size: 17px; font-weight: 600; color: var(--dark); letter-spacing: -.2px;
+  }
+  .status-bar .levels { display: flex; align-items: center; gap: 7px; }
+  .app-header {
+    height: 24px; margin: 16px 16px 0;
+    display: flex; align-items: center; position: relative;
+  }
+  .app-header .back { width: 24px; height: 24px; background: none; border: none; padding: 0; cursor: pointer; }
+  .app-header .title {
+    position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+    font-size: 16px; line-height: 24px; color: var(--dark); white-space: nowrap;
+  }
+  .content {
+    position: absolute; top: 94px; bottom: 0; left: 0; right: 0;
+    overflow-y: auto; padding: 24px 16px 160px; scrollbar-width: none;
+  }
+  .content::-webkit-scrollbar { display: none; }
+
+  .cards-head { display: flex; gap: 8px; align-items: center; margin-bottom: 16px; }
+  .cards-head b { font-size: 20px; line-height: 28px; font-weight: 700; color: var(--dark); }
+  .cards-head span { font-size: 20px; line-height: 28px; font-weight: 700; color: var(--dark-600); }
+  .card-row {
+    background: #fff; border-radius: var(--r-m);
+    padding: 12px; margin-bottom: 8px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .card-row .l { display: flex; gap: 8px; align-items: center; }
+  .card-row .ic {
+    width: 28px; height: 28px; border-radius: 4px; background: var(--dark-200);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .card-row .num { font-size: 16px; line-height: 1.4; color: var(--dark); }
+  .card-row .amount { font-size: 14px; color: var(--dark); padding: 4px 0; }
+
+  /* two actions on one screen */
+  .btn-stack {
+    position: absolute; left: 16px; right: 16px; bottom: 25px; z-index: 2;
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .primary-btn, .secondary-btn {
+    width: 100%; height: 55px; border-radius: 8px;
+    font-family: inherit; font-size: 16px; font-weight: 700; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    transition: background .15s, color .15s;
+  }
+  .primary-btn { border: none; background: var(--btn-black); color: #fff; }
+  .primary-btn:disabled { background: var(--dark-200); color: var(--dark-600); cursor: default; }
+  .secondary-btn { background: #fff; color: var(--dark); border: 1px solid var(--dark-200); }
+  .secondary-btn:active { background: var(--dark-100); }
+
+  /* ---------- sheets ---------- */
+  .sheet-overlay { position: absolute; inset: 0; z-index: 10; background: rgba(36,35,45,.35); display: none; }
+  .sheet-overlay.visible { display: block; }
+  .sheet {
+    position: absolute; left: 0; right: 0; bottom: 0;
+    background: #eff0f2; border-radius: 16px 16px 0 0;
+    box-shadow: 0 -12px 45px rgba(30,45,92,.12);
+  }
+  .sheet .handle { width: 42px; height: 3px; border-radius: 2px; background: var(--dark-200); margin: 11px auto 0; }
+  .sheet-title { font-size: 16px; font-weight: 700; color: var(--dark); text-align: center; margin-top: 14px; }
+
+  /* card-entry sheet */
+  #cardSheet { height: 520px; }
+  .value-card {
+    margin: 16px 20px 0; height: 100px;
+    background: #fff; border-radius: var(--r-m);
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+  }
+  .vc-label { font-size: 14px; color: var(--dark); }
+  .vc-value { font-size: 26px; line-height: 36px; font-weight: 600; color: var(--dark); letter-spacing: .5px; }
+  .vc-value.placeholder { color: var(--dark-200); }
+  .sheet-done {
+    display: block; margin: 16px 20px 0; width: calc(100% - 40px); height: 48px;
+    border: none; border-radius: 8px; cursor: pointer;
+    font-family: inherit; font-size: 16px; font-weight: 700;
+    background: var(--btn-black); color: #fff;
+    transition: background .15s, color .15s;
+  }
+  .sheet-done:disabled { background: var(--dark-200); color: var(--dark-600); cursor: default; }
+  .keypad {
+    position: absolute; left: 0; right: 0; bottom: 0; height: 291px;
+    background: #d1d3d9; padding: 6px 6px 4px;
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px;
+  }
+  .keypad .key {
+    background: #fff; border: none; border-radius: 5px; cursor: pointer;
+    font-family: -apple-system, 'SF Pro', 'Manrope', sans-serif;
+    box-shadow: 0 1px 0 rgba(132,134,140,.6);
+    display: flex; flex-direction: column; align-items: center; justify-content: center; padding-top: 2px;
+  }
+  .keypad .key .d { font-size: 25px; line-height: 1.15; color: #000; }
+  .keypad .key .a { font-size: 10px; letter-spacing: 2px; color: #000; font-weight: 700; }
+  .keypad .key:active { background: #e6e8eb; }
+  .keypad .key.ghost { background: transparent; box-shadow: none; }
+  .keypad .zero { grid-column: 2; }
+
+  /* import sheet */
+  #importSheet { padding-bottom: 24px; }
+  #importSheet .body { padding: 16px 20px 0; }
+  .upload-zone {
+    background: #fff; border: 1.5px dashed var(--dark-200); border-radius: var(--r-m);
+    padding: 26px 20px; text-align: center; cursor: pointer;
+    transition: border-color .15s;
+  }
+  .upload-zone:hover { border-color: var(--dark-600); }
+  .upload-zone .uz-icon {
+    width: 48px; height: 48px; border-radius: 12px; background: var(--light-grey);
+    display: flex; align-items: center; justify-content: center; margin: 0 auto 12px;
+  }
+  .upload-zone .uz-title { font-size: 16px; font-weight: 700; color: var(--dark); margin-bottom: 4px; }
+  .upload-zone .uz-sub { font-size: 13px; line-height: 1.45; color: var(--dark-600); }
+  .tpl-link {
+    display: flex; align-items: center; gap: 8px; margin-top: 16px;
+    background: none; border: none; padding: 0; cursor: pointer; font-family: inherit;
+    font-size: 16px; font-weight: 700; color: var(--brand-green);
+  }
+  .file-chip {
+    background: #fff; border-radius: var(--r-m); padding: 12px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .file-chip .fc-icon {
+    width: 40px; height: 40px; border-radius: 8px; background: var(--light-green);
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .file-chip .fc-name { font-size: 16px; font-weight: 700; color: var(--dark); }
+  .file-chip .fc-meta { font-size: 13px; color: var(--dark-600); }
+  .file-chip .fc-x {
+    margin-left: auto; width: 24px; height: 24px; border-radius: 50%;
+    background: var(--dark-100); border: none; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .progress-wrap { background: #fff; border-radius: var(--r-m); padding: 16px; }
+  .progress-wrap .p-label { display: flex; justify-content: space-between; font-size: 14px; color: var(--dark); margin-bottom: 10px; }
+  .progress-bar { height: 8px; border-radius: 4px; background: var(--dark-100); overflow: hidden; }
+  .progress-bar i { display: block; height: 100%; width: 0; background: var(--green); border-radius: 4px; transition: width .25s linear; }
+  .result-panel { background: #fff; border-radius: var(--r-m); padding: 16px; }
+  .result-panel .rp-row { display: flex; align-items: center; gap: 10px; }
+  .result-panel .rp-row + .rp-row { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--dark-100); }
+  .rp-ic {
+    width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .rp-ic.ok { background: var(--light-green); }
+  .rp-ic.warn { background: #fdf3e0; }
+  .rp-title { font-size: 16px; font-weight: 700; color: var(--dark); }
+  .rp-sub { font-size: 13px; color: var(--dark-600); }
+  .rp-link { font-size: 14px; font-weight: 700; color: var(--brand-green); background: none; border: none; padding: 0; cursor: pointer; font-family: inherit; }
+
+  .restart {
+    font-family: inherit; font-size: 13px; font-weight: 600;
+    color: rgba(255,255,255,.65); background: rgba(255,255,255,.08);
+    border: none; border-radius: 100px; padding: 8px 18px; cursor: pointer;
+    transition: background .15s, color .15s;
+  }
+  .restart:hover { background: rgba(255,255,255,.18); color: #fff; }
+
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+  .anim-in { animation: fadeUp .45s cubic-bezier(.2,.7,.3,1) both; }
+  svg { display: block; }
+  /* ?embed=1 — inside the case page: light card ground, soft shadow, no restart (the back arrow resets), as in the Carbanara embed */
+  body.embed{background:#EAEAEA;padding:0;min-height:100vh;justify-content:center;gap:0}
+  body.embed .page-head,body.embed .caption,body.embed .restart{display:none}
+  body.embed{overflow:hidden}
+  /* Figma 89:15778: the screen is drawn at 222.73x482 with a 1px black inside stroke and r23 — at 1x that is 2px (Chrome snaps 1.7 down to 1) and r39 */
+  body.embed .phone{box-shadow:none;border:2px solid #000;border-radius:39px}
+</style>
+</head>
+<body>
+
+<div class="page-head">
+  <div class="kicker">Гипотеза 1</div>
+  <h1>Ручной ввод номеров карт</h1>
+  <p>Предположение: владелец добавляет карты сам — по одной вручную
+     или импортом таблицы. Оба способа доступны с одного экрана.</p>
+</div>
+
+<div class="phone">
+  <div class="status-bar"><div class="time">9:41</div><div class="levels" data-statusicons></div></div>
+  <div class="app-header">
+    <button class="back" data-caret aria-label="Начать сначала" onclick="resetAll()"></button>
+    <div class="title">Карты лояльности</div>
+  </div>
+  <div class="content" id="listContent"></div>
+
+  <div class="btn-stack">
+    <button class="primary-btn" onclick="openCardSheet()"><span data-plus></span>Добавить карту</button>
+    <button class="secondary-btn" onclick="openImportSheet()"><span data-table></span>Импорт таблицы</button>
+  </div>
+
+  <!-- card entry sheet -->
+  <div class="sheet-overlay" id="cardOverlay" onclick="closeCardSheet()">
+    <div class="sheet" id="cardSheet" onclick="event.stopPropagation()">
+      <div class="handle" onclick="closeCardSheet()"></div>
+      <div class="value-card">
+        <div class="vc-label">Номер карты</div>
+        <div class="vc-value" id="cardValue"></div>
+      </div>
+      <button class="sheet-done" id="cardDone" onclick="commitCard()">Добавить</button>
+      <div class="keypad" id="keypad"></div>
+    </div>
+  </div>
+
+  <!-- import sheet -->
+  <div class="sheet-overlay" id="importOverlay" onclick="closeImportSheet()">
+    <div class="sheet" id="importSheet" onclick="event.stopPropagation()">
+      <div class="handle" onclick="closeImportSheet()"></div>
+      <div class="sheet-title">Импорт таблицы</div>
+      <div class="body" id="importBody"></div>
+    </div>
+  </div>
+</div>
+
+<div class="caption">
+  <div class="tag">Гипотеза отклонена</div>
+  <h2>Слишком трудоёмко при большом объёме</h2>
+  <p>Ручной ввод — ~30–40 секунд на карту, при базе в сотни карт это часы работы.
+     Импорт таблицы закрывает объём лишь частично: нужно готовить файл по шаблону —
+     не масштабируемо и неудобно для большинства владельцев.</p>
+</div>
+
+<button class="restart" onclick="resetAll()">↺&nbsp; Начать сначала</button>
+
+<script>
+/* ---------- icons ---------- */
+const I = {
+  caret: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M15 4.5L7.5 12L15 19.5" stroke="#24232d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+  creditCard: `<svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="1.8" y="4" width="16.4" height="12" rx="2" stroke="#fff" stroke-width="1.5"/><path d="M1.8 8H18.2" stroke="#fff" stroke-width="1.5"/><path d="M5 12.6H9" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/></svg>`,
+  plusWhite: `<svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 4.5V15.5M4.5 10H15.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>`,
+  table: `<svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="2.5" y="3.5" width="15" height="13" rx="2" stroke="#24232d" stroke-width="1.5"/><path d="M2.5 8H17.5M8 8V16.5M13 8V16.5" stroke="#24232d" stroke-width="1.5"/></svg>`,
+  backspace: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M9.2 5.5H19a1.6 1.6 0 0 1 1.6 1.6v9.8A1.6 1.6 0 0 1 19 18.5H9.2a1.6 1.6 0 0 1-1.23-.57L3.6 12.7a1.1 1.1 0 0 1 0-1.4l4.37-5.23A1.6 1.6 0 0 1 9.2 5.5Z" stroke="#24232d" stroke-width="1.4" stroke-linejoin="round"/><path d="M11.2 9.5l5 5M16.2 9.5l-5 5" stroke="#24232d" stroke-width="1.4" stroke-linecap="round"/></svg>`,
+  cellular: `<svg width="19" height="12" viewBox="0 0 19 12" fill="#24232d"><rect x="0" y="7.5" width="3" height="4.2" rx="1"/><rect x="5.1" y="5" width="3" height="6.7" rx="1"/><rect x="10.2" y="2.5" width="3" height="9.2" rx="1"/><rect x="15.3" y="0" width="3" height="11.7" rx="1"/></svg>`,
+  wifi: `<svg width="17" height="12" viewBox="0 0 17 12" fill="#24232d"><path d="M8.5 11.6a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Z"/><path d="M8.5 5.9c1.5 0 2.87.55 3.92 1.47a.55.55 0 0 0 .76-.03l.72-.74a.53.53 0 0 0-.03-.78A7.5 7.5 0 0 0 8.5 3.9a7.5 7.5 0 0 0-5.37 1.92.53.53 0 0 0-.03.78l.72.74c.2.21.54.22.76.03A5.94 5.94 0 0 1 8.5 5.9Z"/><path d="M8.5 1.55A10.6 10.6 0 0 1 15.7 4.4a.55.55 0 0 0 .77-.02l.73-.74a.53.53 0 0 0-.02-.77A12.2 12.2 0 0 0 8.5 0C5.3 0 2.38 1.1.82 2.87a.53.53 0 0 0-.02.77l.73.74c.2.21.55.22.77.02A10.6 10.6 0 0 1 8.5 1.55Z"/></svg>`,
+  battery: `<svg width="28" height="13" viewBox="0 0 28 13" fill="none"><rect x="0.5" y="0.5" width="24" height="12" rx="4" stroke="#24232d" stroke-opacity=".35"/><rect x="2" y="2" width="21" height="9" rx="2.5" fill="#24232d"/><path d="M26.3 4.3v4.4c1-.36 1.7-1.2 1.7-2.2s-.7-1.84-1.7-2.2Z" fill="#24232d" fill-opacity=".4"/></svg>`,
+  upload: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M12 15V4M12 4L7.5 8.5M12 4l4.5 4.5" stroke="#24232d" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 15.5V18a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2.5" stroke="#24232d" stroke-width="1.7" stroke-linecap="round"/></svg>`,
+  fileGreen: `<svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M5 2.5h7.5L18 8v10.5a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 4 18.5v-14A1.5 1.5 0 0 1 5.5 2.5H5Z" stroke="#31a456" stroke-width="1.5" stroke-linejoin="round"/><path d="M12.5 2.5V8H18" stroke="#31a456" stroke-width="1.5" stroke-linejoin="round"/><path d="M7.5 12h7M7.5 15.5h7" stroke="#31a456" stroke-width="1.5" stroke-linecap="round"/></svg>`,
+  download: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M12 4v11m0 0l-4.5-4.5M12 15l4.5-4.5" stroke="#457454" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 16.5V19a1.5 1.5 0 0 0 1.5 1.5h13A1.5 1.5 0 0 0 20 19v-2.5" stroke="#457454" stroke-width="1.8" stroke-linecap="round"/></svg>`,
+  check: `<svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M3.5 9.5L7 13L14.5 5" stroke="#31a456" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+  warn: `<svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 3L16 15H2L9 3Z" stroke="#e3a13a" stroke-width="1.6" stroke-linejoin="round"/><path d="M9 8v3" stroke="#e3a13a" stroke-width="1.6" stroke-linecap="round"/><circle cx="9" cy="13" r=".9" fill="#e3a13a"/></svg>`,
+  close: `<svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2.5 2.5L9.5 9.5M9.5 2.5L2.5 9.5" stroke="#24232d" stroke-width="1.6" stroke-linecap="round"/></svg>`
+};
+
+/* ================= state ================= */
+const START_CARDS = ['5678 9012 3456', '7890 1234 5678'];
+const state = {
+  cards: [...START_CARDS],
+  extraCount: 0,                 // карты, «добавленные» импортом
+  digits: '',
+  cardOpen: false,
+  importOpen: false,
+  importPhase: 'idle',           // idle | file | importing | done
+};
+let importTimer = null;
+
+const fmtDigits = d => d.replace(/(.{4})/g, '$1 ').trim();
+
+/* ================= list ================= */
+function renderList(newIndex = -1) {
+  document.getElementById('listContent').innerHTML = `
+    <div class="cards-head"><b>Карты</b><span>${state.cards.length + state.extraCount}</span></div>
+    ${state.cards.map((n, i) => `
+      <div class="card-row ${i <= newIndex ? 'anim-in' : ''}" ${i <= newIndex ? `style="animation-delay:${i * .06}s"` : ''}>
+        <div class="l"><div class="ic">${I.creditCard}</div><div class="num">${n}</div></div>
+        <div class="amount">0 ₸</div>
+      </div>`).join('')}`;
+}
+
+/* ================= card entry sheet ================= */
+function renderCardSheet() {
+  document.getElementById('cardOverlay').classList.toggle('visible', state.cardOpen);
+  const v = document.getElementById('cardValue');
+  if (state.digits) { v.className = 'vc-value'; v.textContent = fmtDigits(state.digits); }
+  else { v.className = 'vc-value placeholder'; v.textContent = '0000 0000 0000'; }
+  document.getElementById('cardDone').disabled = state.digits.length !== 12;
+}
+function openCardSheet() { state.cardOpen = true; state.digits = ''; renderCardSheet(); }
+function closeCardSheet() { state.cardOpen = false; renderCardSheet(); }
+function commitCard() {
+  state.cards.unshift(fmtDigits(state.digits));
+  state.cardOpen = false;
+  renderList(0); renderCardSheet();
+}
+function keyIn(d) { if (state.digits.length < 12) state.digits += d; renderCardSheet(); }
+function keyBack() { state.digits = state.digits.slice(0, -1); renderCardSheet(); }
+
+function buildKeypad() {
+  const letters = { 2:'ABC',3:'DEF',4:'GHI',5:'JKL',6:'MNO',7:'PQRS',8:'TUV',9:'WXYZ' };
+  let html = '';
+  for (let d = 1; d <= 9; d++)
+    html += `<button class="key" onclick="keyIn('${d}')"><span class="d">${d}</span><span class="a">${letters[d] || '&nbsp;'}</span></button>`;
+  html += `<button class="key zero" onclick="keyIn('0')"><span class="d">0</span></button>`;
+  html += `<button class="key ghost" onclick="keyBack()">${I.backspace}</button>`;
+  document.getElementById('keypad').innerHTML = html;
+}
+
+/* ================= import sheet ================= */
+function renderImport() {
+  document.getElementById('importOverlay').classList.toggle('visible', state.importOpen);
+  const b = document.getElementById('importBody');
+
+  if (state.importPhase === 'idle') {
+    b.innerHTML = `
+      <div class="upload-zone" onclick="pickFile()">
+        <div class="uz-icon">${I.upload}</div>
+        <div class="uz-title">Загрузите файл с картами</div>
+        <div class="uz-sub">.xlsx или .csv, до 5 МБ.<br>Номер карты — в первом столбце.</div>
+      </div>
+      <button class="tpl-link">${I.download} Скачать шаблон таблицы</button>`;
+  } else if (state.importPhase === 'file') {
+    b.innerHTML = `
+      <div class="file-chip anim-in">
+        <div class="fc-icon">${I.fileGreen}</div>
+        <div>
+          <div class="fc-name">loyalty_cards.xlsx</div>
+          <div class="fc-meta">214 строк · 18 КБ</div>
+        </div>
+        <button class="fc-x" onclick="clearFile()">${I.close}</button>
+      </div>
+      <button class="sheet-done" style="margin:16px 0 0;width:100%" onclick="startImport()">Импортировать</button>`;
+  } else if (state.importPhase === 'importing') {
+    b.innerHTML = `
+      <div class="progress-wrap">
+        <div class="p-label"><span>Импортируем карты…</span><span id="pct">0%</span></div>
+        <div class="progress-bar"><i id="bar"></i></div>
+      </div>`;
+  } else {
+    b.innerHTML = `
+      <div class="result-panel anim-in">
+        <div class="rp-row">
+          <div class="rp-ic ok">${I.check}</div>
+          <div>
+            <div class="rp-title">Добавлено 198 карт</div>
+            <div class="rp-sub">Они уже видны в списке карт</div>
+          </div>
+        </div>
+        <div class="rp-row">
+          <div class="rp-ic warn">${I.warn}</div>
+          <div>
+            <div class="rp-title">16 строк с ошибками</div>
+            <div class="rp-sub">Неверный формат номера карты</div><br>
+            <button class="rp-link">Посмотреть ошибки</button>
+          </div>
+        </div>
+      </div>
+      <button class="sheet-done" style="margin:16px 0 0;width:100%" onclick="finishImport()">Готово</button>`;
+  }
+}
+function openImportSheet() { state.importOpen = true; state.importPhase = 'idle'; renderImport(); }
+function closeImportSheet() { clearInterval(importTimer); state.importOpen = false; renderImport(); }
+function pickFile() { state.importPhase = 'file'; renderImport(); }
+function clearFile() { state.importPhase = 'idle'; renderImport(); }
+function startImport() {
+  state.importPhase = 'importing'; renderImport();
+  let p = 0;
+  importTimer = setInterval(() => {
+    p = Math.min(100, p + 9 + Math.random() * 8);
+    const bar = document.getElementById('bar'), pct = document.getElementById('pct');
+    if (bar) { bar.style.width = p + '%'; pct.textContent = Math.round(p) + '%'; }
+    if (p >= 100) {
+      clearInterval(importTimer);
+      setTimeout(() => { state.importPhase = 'done'; renderImport(); }, 350);
+    }
+  }, 180);
+}
+function finishImport() {
+  state.importOpen = false;
+  state.extraCount += 198;
+  state.cards.unshift('1234 5678 9012', '9012 3456 7890', '3456 7890 1234');
+  state.extraCount -= 3;
+  renderList(2); renderImport();
+}
+
+/* ================= shared ================= */
+function resetAll() {
+  clearInterval(importTimer);
+  Object.assign(state, {
+    cards: [...START_CARDS], extraCount: 0, digits: '',
+    cardOpen: false, importOpen: false, importPhase: 'idle'
+  });
+  renderList(); renderCardSheet(); renderImport();
+}
+
+document.querySelectorAll('[data-caret]').forEach(el => el.innerHTML = I.caret);
+document.querySelectorAll('[data-plus]').forEach(el => el.innerHTML = I.plusWhite);
+document.querySelectorAll('[data-table]').forEach(el => el.innerHTML = I.table);
+document.querySelectorAll('[data-statusicons]').forEach(el => el.innerHTML = I.cellular + I.wifi + I.battery);
+buildKeypad();
+renderList(); renderCardSheet(); renderImport();
+</script>
+<script>if(location.search.includes("embed=1"))document.body.classList.add("embed");</script>
+</body>
+</html>

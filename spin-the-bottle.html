@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Spin the bottle — flow</title>
+<style>
+  :root{ --stage:#141414; --green:#7FEE28 }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:var(--stage);min-height:100vh;display:flex;align-items:center;justify-content:center;
+       font-family:'PP Neue Montreal','Inter',system-ui,sans-serif;color:#fff}
+
+  /* ---------- stage ----------
+     Everything inside .screen is positioned in Figma's own screen coordinates (202x436)
+     and the whole phone is scaled up by the transform on .phone. Keeping the design's
+     numbers verbatim is what makes the five storyboard frames line up without
+     re-deriving every offset.
+
+     Steps: s0 idle · s1 shake · s2 hand brings bottle · s3 modal · s4 spin ·
+            s5 venue revealed · s6 card up */
+  .stage{position:relative;width:470px;height:836px;flex:none;user-select:none}
+
+  .phone-box{position:absolute;left:51px;top:14px;width:367.5px;height:775px}
+  .phone{position:relative;width:210px;height:443px;transform:scale(1.75);transform-origin:top left}
+  .screen{position:absolute;left:3px;top:2px;width:202px;height:436px;overflow:hidden;
+          border-radius:27px;background:#141414}
+  .screen img{position:absolute;display:block;-webkit-user-drag:none;pointer-events:none}
+
+  /* ---------- device mockup ----------
+     The file draws the handset as a 1.9px white outline (radius 29) sitting 1.7px outside
+     the screen, plus four side keys. It's all straight geometry, so it's rebuilt here in
+     CSS rather than exported — stays crisp at any scale. */
+  .bezel{position:absolute;left:1.3px;top:1.3px;width:205.9px;height:440.2px;
+         border:1.9px solid rgba(255,255,255,.92);border-radius:29px;pointer-events:none}
+  .key{position:absolute;width:1.2px;background:rgba(255,255,255,.92);border-radius:1px;
+       pointer-events:none}
+  .key-lock  {left:208.4px;top:164.7px;height:62.1px}   /* right side */
+  .key-vdown {left:0;top:99.6px;height:20px}            /* left side */
+  .key-vup   {left:0;top:137.2px;height:40.1px}
+  .key-silent{left:0;top:187.3px;height:40.1px}
+
+  /* idle: a slow rock, just enough to invite the gesture */
+  .stage.s0 .phone-box{animation:rock 1.9s ease-in-out infinite}
+  @keyframes rock{
+    0%,100%{transform:rotate(0deg) translateX(0)}
+    30%{transform:rotate(-1.1deg) translateX(-3px)}
+    65%{transform:rotate(.9deg) translateX(3px)}
+  }
+  /* the actual shake — held long enough to read as its own beat */
+  .stage.s1 .phone-box{animation:shakeHard 1.1s ease-in-out 2}
+  @keyframes shakeHard{
+    0%,100%{transform:rotate(0deg) translateX(0)}
+    8%{transform:rotate(-3.2deg) translateX(-8px)}
+    20%{transform:rotate(2.8deg) translateX(8px)}
+    32%{transform:rotate(-2.5deg) translateX(-7px)}
+    44%{transform:rotate(2.2deg) translateX(6px)}
+    56%{transform:rotate(-1.9deg) translateX(-5px)}
+    68%{transform:rotate(1.5deg) translateX(4px)}
+    80%{transform:rotate(-1deg) translateX(-3px)}
+    90%{transform:rotate(.6deg) translateX(2px)}
+  }
+
+  /* ---------- map layers ---------- */
+  .base{left:0;top:0;width:202px;height:436px}
+  .pins-a{left:-37px;top:56px;width:284px;height:324px;transition:opacity .5s ease}
+  .pins-b{left:-41px;top:75px;width:271px;height:271px;opacity:0;transition:opacity .5s ease}
+  .stage.s5 .pins-a,.stage.s6 .pins-a{opacity:0}
+  .stage.s5 .pins-b,.stage.s6 .pins-b{opacity:1}
+
+  /* the chosen venue — lands exactly where the bottle's cap ends up pointing */
+  .bigpin{left:35px;top:176px;width:50px;height:38px;opacity:0;
+          transform:scale(.4) translateY(6px);transform-origin:50% 72%;
+          transition:opacity .3s ease,transform .45s cubic-bezier(.34,1.56,.64,1)}
+  .stage.s5 .bigpin,.stage.s6 .bigpin{opacity:1;transform:scale(1) translateY(0)}
+
+  /* ---------- floating action buttons ---------- */
+  .fabs{position:absolute;left:170px;top:326px;width:25px;height:52px;
+        border:0;padding:0;background:none;cursor:pointer;transition:opacity .4s ease}
+  .fabs img{left:0;top:0;width:25px;height:52px;transition:opacity .3s ease}
+  .fab-on{opacity:0}
+  .stage.s2 .fab-off,.stage.s3 .fab-off,.stage.s4 .fab-off,
+  .stage.s5 .fab-off,.stage.s6 .fab-off{opacity:0}
+  .stage.s2 .fab-on,.stage.s3 .fab-on,.stage.s4 .fab-on,
+  .stage.s5 .fab-on,.stage.s6 .fab-on{opacity:1}
+  /* it turns green as it's tapped, then leaves with the rest of the map chrome — the
+     modal frame in the file has no FABs at all. */
+  .stage.s3 .fabs,.stage.s4 .fabs,.stage.s5 .fabs,.stage.s6 .fabs{opacity:0;pointer-events:none}
+
+  /* ---------- dim behind the modal ---------- */
+  .dim{position:absolute;inset:0;background:#141414;opacity:0;transition:opacity .45s ease;
+       pointer-events:none}
+  .stage.s3 .dim,.stage.s4 .dim{opacity:.68}
+
+  /* ---------- hand + bottle ----------
+     The hand arrives carrying its own bottle (one drawing), then we hand off to the
+     standalone bottle and swap in a bottle-less arm so only the hand leaves. */
+  .hand{left:-133px;top:81px;width:286px;height:212px;
+        transform:translateX(-210px) rotate(-6.1deg);
+        transition:transform .7s cubic-bezier(.22,1,.36,1)}
+  .hand-only{opacity:0}
+  .stage.s2 .hand{transform:translateX(0) rotate(-6.1deg)}          /* reaches in */
+  .stage.s3 .hand,.stage.s4 .hand,.stage.s5 .hand,.stage.s6 .hand{ /* and withdraws */
+    transform:translateX(-230px) rotate(-6.1deg);
+    transition:transform .62s cubic-bezier(.4,0,.7,.3)}
+  /* swap the carried arm for the empty one so only the hand leaves, not the bottle */
+  .stage.s3 .hand-carry,.stage.s4 .hand-carry,
+  .stage.s5 .hand-carry,.stage.s6 .hand-carry{opacity:0}
+  .stage.s3 .hand-only{opacity:1}
+  .stage.s4 .hand,.stage.s5 .hand,.stage.s6 .hand{opacity:0}
+
+  /* ---------- the bottle ----------
+     Two poses measured from the file: as held in the hand (smaller, lower, near-upright)
+     and as it stands for the modal. It spins about its own centre from there. */
+  .bottle{left:85px;top:69px;width:43px;height:149px;opacity:0;transform-origin:50% 50%;
+          transform:translate(-3.65px,54.1px) scale(.731) rotate(.34deg)}
+  .stage.s2 .bottle{opacity:0}
+  .stage.s3 .bottle{opacity:1;transform:translate(0,0) scale(1) rotate(-3.2deg);
+                    transition:opacity .2s ease,transform .6s cubic-bezier(.22,1,.36,1)}
+  .stage.s4 .bottle,.stage.s5 .bottle,.stage.s6 .bottle{opacity:1}
+  .stage.s6 .bottle{opacity:0;transition:opacity .45s ease}
+  /* frame 4 draws the bottle with a motion smear, so it blurs while it's travelling fast
+     and sharpens as it settles */
+  .stage.s4 .bottle{animation:spinBlur 3.1s linear}
+  @keyframes spinBlur{
+    0%{filter:blur(0)} 8%{filter:blur(2.6px)} 30%{filter:blur(2.6px)}
+    55%{filter:blur(1.6px)} 80%{filter:blur(.6px)} 100%{filter:blur(0)}
+  }
+
+  /* ---------- spin arcs beside the bottle ---------- */
+  .arc{width:12px;height:30px;opacity:0;transition:opacity .3s ease}
+  .arc-a{left:126px;top:99px;transform:rotate(35.9deg)}
+  .arc-b{left:73px;top:200px;transform:rotate(-144.1deg)}
+  .stage.s3 .arc,.stage.s4 .arc{opacity:1}
+  .stage.s4 .arc{animation:arcPulse .32s ease-in-out infinite}
+  @keyframes arcPulse{0%,100%{opacity:.3}50%{opacity:1}}
+
+  /* the arcs flanking the phone in frame 1 — the "shake me" cue */
+  .cue{position:absolute;width:26px;height:64px;opacity:0;
+       transition:opacity .4s ease;pointer-events:none}
+  .cue-l{left:12px;top:470px;transform:rotate(-155deg)}
+  .cue-r{left:432px;top:206px;transform:rotate(25deg)}
+  .stage.s0 .cue{opacity:.9}
+  .stage.s1 .cue{opacity:1;animation:cuePulse .55s ease-in-out infinite}
+  @keyframes cuePulse{0%,100%{opacity:.4}50%{opacity:1}}
+
+  /* ---------- modal copy ---------- */
+  .modal{position:absolute;inset:0;pointer-events:none;opacity:0;
+         transform:translateY(10px);transition:opacity .45s ease,transform .45s ease}
+  .stage.s3 .modal,.stage.s4 .modal{opacity:1;transform:translateY(0)}
+  /* the copy has already cleared by the time the bottle comes to rest (frame 4) */
+  .stage.s4.late .modal{opacity:0}
+  .modal h2{position:absolute;left:19px;top:244px;width:165px;height:40px;
+            font-family:'Heineken Serif 18',Georgia,'Times New Roman',serif;font-weight:700;
+            font-size:18.84px;line-height:19.89px;text-align:center;color:#fff}
+  .modal p{position:absolute;left:27px;top:293px;width:150px;
+           font-family:Montserrat,'Inter',system-ui,sans-serif;font-weight:600;
+           font-size:8.94px;line-height:140%;text-align:center;color:#fff}
+  .modal .cta{position:absolute;left:13px;top:340px;width:178px;height:31px;
+              display:flex;align-items:center;justify-content:center;
+              border:.64px solid #fff;border-radius:64px;background:none;color:#fff;
+              font-family:Montserrat,'Inter',system-ui,sans-serif;font-weight:700;
+              font-size:8.94px;text-transform:uppercase;letter-spacing:.02em}
+
+  /* ---------- venue card ---------- */
+  .card{left:12px;top:297px;width:177px;height:66px;opacity:0;
+        transform:translateY(90px);transition:opacity .3s ease,transform .55s cubic-bezier(.22,1,.36,1)}
+  .stage.s6 .card{opacity:1;transform:translateY(0)}
+
+  /* ---------- captions and controls ---------- */
+  .foot{position:absolute;left:0;right:0;bottom:0;display:flex;flex-direction:column;
+        align-items:center;gap:14px}
+  .step{font-size:13px;color:#8a8a8a;text-align:center;padding:0 40px;line-height:1.45;
+        min-height:19px;opacity:0;transition:opacity .35s ease}
+  .stage:not(.s0):not(.s6) .step{opacity:1}
+  .btn{background:none;border:1px solid #3a3a3a;border-radius:22px;color:#c4c4c4;
+       font:inherit;font-size:13px;padding:9px 22px;cursor:pointer;
+       transition:opacity .3s,border-color .2s,color .2s,background .2s}
+  .btn:hover{border-color:var(--green);color:var(--green)}
+  .shake-btn{border-color:#4a4a4a;color:#e6e6e6}
+  .stage:not(.s0) .shake-btn{opacity:0;pointer-events:none}
+  .replay{opacity:0;pointer-events:none;position:absolute;bottom:0}
+  .stage.s6 .replay{opacity:1;pointer-events:auto}
+</style>
+</head>
+<body>
+
+<div class="stage s0" id="stage">
+  <img class="cue cue-l" src="assets/spin/arc.png" alt="">
+  <img class="cue cue-r" src="assets/spin/arc.png" alt="">
+
+  <div class="phone-box">
+    <div class="phone">
+      <div class="screen" id="screen">
+        <img class="base" src="assets/spin/base.png" alt="">
+        <img class="pins-a" src="assets/spin/pins1.png" alt="">
+        <img class="pins-b" src="assets/spin/pins5.png" alt="">
+        <img class="bigpin" src="assets/spin/bigPin.png" alt="">
+
+        <button class="fabs" id="fabs" aria-label="Tap the bottle icon">
+          <img class="fab-off" src="assets/spin/fab.png" alt="">
+          <img class="fab-on"  src="assets/spin/fabActive.png" alt="">
+        </button>
+
+        <div class="dim"></div>
+
+        <img class="hand hand-carry" src="assets/spin/handBottle.png" alt="">
+        <img class="hand hand-only"  src="assets/spin/handOnly.png" alt="">
+
+        <img class="bottle" id="bottle" src="assets/spin/bottle.png" alt="">
+
+        <img class="arc arc-a" src="assets/spin/arc.png" alt="">
+        <img class="arc arc-b" src="assets/spin/arc.png" alt="">
+
+        <div class="modal">
+          <h2>Feeling lucky today?</h2>
+          <p>Spin the bottle and we will pick you a place for your night out.</p>
+          <div class="cta">No, thanks, i got it</div>
+        </div>
+
+        <img class="card" src="assets/spin/card.png" alt="">
+      </div>
+
+      <div class="bezel"></div>
+      <span class="key key-lock"></span>
+      <span class="key key-vdown"></span>
+      <span class="key key-vup"></span>
+      <span class="key key-silent"></span>
+    </div>
+  </div>
+
+  <div class="foot">
+    <div class="step" id="step"></div>
+    <button class="btn shake-btn" id="shakeBtn">Shake the phone</button>
+    <button class="btn replay" id="replay">↺ Replay</button>
+  </div>
+</div>
+
+<script>
+  const stage  = document.getElementById('stage');
+  const bottle = document.getElementById('bottle');
+  const stepEl = document.getElementById('step');
+
+  /* Landing angle is derived, not eyeballed: the bottle's centre sits at (106.5,143.5) and
+     the chosen pin's tip at (60,203), so the cap has to come to rest at 218deg for it to
+     actually point at the venue. */
+  const LAND = 218;
+  const WIND = 900;                 // first, fast phase — 2.5 turns, still accelerating
+  const TOTAL = 5 * 360 + LAND;     // then a long decelerating settle onto the target
+
+  const CAPTIONS = {
+    s1: 'Shake screen',
+    s2: 'An illustrated hand brings a bottle when a user taps the bottle icon',
+    s3: 'A user spins the bottle',
+    s4: 'When the bottle stops spinning, the bottle cap will point to a venue',
+    s5: 'The venue is picked and its card appears at the bottom'
+  };
+
+  const timers = [];
+  const later = (fn, ms) => timers.push(setTimeout(fn, ms));
+  const clearAll = () => { timers.forEach(clearTimeout); timers.length = 0; };
+
+  function setStep(s){
+    stage.className = 'stage ' + s;
+    stepEl.textContent = CAPTIONS[s] || '';
+  }
+
+  function reset(){
+    clearAll();
+    bottle.style.transition = 'none';
+    bottle.style.transform = '';
+    void bottle.offsetWidth;
+    bottle.style.transition = '';
+    setStep('s0');
+  }
+
+  /* Two phases so it reads as a real spin rather than one long slowdown: it winds up and
+     runs fast, then the second leg carries the remaining turns while braking onto 218deg. */
+  function spin(){
+    setStep('s4');
+    bottle.style.transition = 'transform .9s cubic-bezier(.4,0,1,1)';
+    bottle.style.transform  = `rotate(${WIND}deg)`;
+    later(() => {
+      bottle.style.transition = 'transform 2.2s cubic-bezier(.08,.72,.1,1)';
+      bottle.style.transform  = `rotate(${TOTAL}deg)`;
+    }, 900);
+    later(() => stage.classList.add('late'), 2400);   // copy clears while it's still turning
+  }
+
+  /* from the shake (or straight from the bottle icon) through to the card */
+  function runFromHand(t0){
+    later(() => setStep('s2'), t0);                    // hand carries the bottle in
+    later(() => setStep('s3'), t0 + 820);              // hand leaves, bottle settles, modal up
+    later(spin,               t0 + 2000);              // spin
+    later(() => setStep('s5'), t0 + 2000 + 3350);      // dim out, pin pops in at the target
+    later(() => setStep('s6'), t0 + 2000 + 4150);      // card slides up, bottle bows out
+  }
+
+  function playShake(){
+    clearAll();
+    setStep('s1');
+    runFromHand(2200);                                 // two full shake cycles first
+  }
+
+  function playTap(){
+    clearAll();
+    runFromHand(0);
+  }
+
+  document.getElementById('shakeBtn').addEventListener('click', () => {
+    if (stage.classList.contains('s0')) playShake();
+  });
+  document.getElementById('fabs').addEventListener('click', () => {
+    if (stage.classList.contains('s0')) playTap();
+  });
+  document.getElementById('replay').addEventListener('click', () => { reset(); later(playShake, 260); });
+</script>
+</body>
+</html>

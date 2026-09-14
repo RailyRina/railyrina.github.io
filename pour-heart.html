@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pour the drink — microinteraction</title>
+<style>
+  :root{ --drink:#F8C925; --puck:#2F302F; --stage:#141414 }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:var(--stage);min-height:100vh;display:flex;align-items:center;justify-content:center;
+       font-family:'PP Neue Montreal','Inter',system-ui,sans-serif;color:#fff}
+
+  /* 518x536 = the artboard the illustrations were composed on.
+     overflow:hidden reproduces the frame crop — in Figma the bottle runs off the right edge. */
+  .stage{position:relative;width:518px;height:536px;flex:none;user-select:none;overflow:hidden}
+  .stage img{position:absolute;pointer-events:none;-webkit-user-drag:none}
+
+  /* ---------- bottle ----------
+     Every position below is the node's geometric centre measured in Figma, so the artwork
+     lands exactly where it does in the storyboard. Base = pouring pose (frame 3, rotation 75°);
+     the PNG already carries 30°, so CSS adds -45deg (Figma turns counter-clockwise).
+     At rest the bottle waits off-stage — frame 1 has nothing but the heart. */
+  .bottle{left:254.3px;top:-21.9px;width:371.8px;height:454.4px;transform-origin:50% 50%;
+          transform:translate(-31.3px,63.9px) rotate(0deg);opacity:0;
+          transition:transform .35s ease,opacity .3s ease}
+  /* frame 2 — bottle is in shot, heart still empty */
+  .stage.hold .bottle{opacity:1;transform:translate(-31.3px,63.9px) rotate(0deg)}
+  /* frame 3 — tips over the heart */
+  .stage.pour .bottle{opacity:1;transform:translate(0,0) rotate(-45deg);
+                      transition:transform .5s cubic-bezier(.3,.6,.3,1),opacity .2s ease}
+  /* frame 4 — bottle simply leaves the shot */
+  .stage.done .bottle{opacity:0;transform:translate(0,0) rotate(-45deg);transition:opacity .35s ease}
+
+  /* ---------- pouring stream ---------- */
+  .splash{left:208.8px;top:98.3px;width:117.1px;height:169.1px;opacity:0;transform:scale(.9);transform-origin:50% 0}
+  .stage.pour .splash{opacity:1;transform:scale(1);transition:opacity .18s ease .34s,transform .3s ease .34s}
+
+  /* ---------- sparks ---------- */
+  .sp{opacity:0;transform:scale(.4);transform-origin:50% 50%}
+  .sp.show{animation:spark .9s ease-out forwards}
+  @keyframes spark{
+    0%{opacity:0;transform:scale(.35)}
+    25%{opacity:1;transform:scale(1.12)}
+    60%{opacity:1;transform:scale(1)}
+    100%{opacity:0;transform:scale(1.05)}
+  }
+  .sp-a  {left:144.1px;top:211.1px;width:28.3px;height:36.1px}
+  .sp-big{left:121px;  top:292px;  width:102px; height:95.6px}
+  .sp-b  {left:177.3px;top:208.7px;width:27.6px;height:31.9px}
+  .sp-c  {left:300.6px;top:312.9px;width:27.6px;height:25.5px}
+  .sp-d  {left:326.1px;top:198.1px;width:14.9px;height:19.1px}
+
+  /* ---------- the puck with the heart — sits at (259.2, 267.8) in all four frames ---------- */
+  .puck{position:absolute;left:199.2px;top:207.8px;width:120px;height:120px;border:0;padding:0;
+        border-radius:50%;background:var(--puck);cursor:pointer;
+        display:flex;align-items:center;justify-content:center;
+        box-shadow:0 11px 18px rgba(0,0,0,.5);
+        transition:transform .25s cubic-bezier(.34,1.56,.64,1)}
+  .puck:active{transform:scale(.94)}
+  .stage.done .puck{animation:puckPop .45s cubic-bezier(.34,1.56,.64,1)}
+  @keyframes puckPop{0%{transform:scale(1)}40%{transform:scale(1.09)}100%{transform:scale(1)}}
+  .heart{width:72px;height:72px;display:block;overflow:visible}
+
+  /* liquid rides up inside the heart; 72 = fully drained (below the tip), 10 = brim full */
+  .liquid{transform:translateY(72px);transition:transform 0s}
+  .stage.pour .liquid,.stage.done .liquid{transform:translateY(10px);transition:transform 1s cubic-bezier(.4,.1,.35,1) .35s}
+  .wave{animation:slosh 2.4s ease-in-out infinite}
+  @keyframes slosh{0%,100%{transform:translateX(-6px)}50%{transform:translateX(-24px)}}
+
+  .hint{position:absolute;left:0;right:0;bottom:96px;text-align:center;font-size:14px;color:#5f5f5f;
+        transition:opacity .3s}
+  .stage.hold .hint,.stage.pour .hint,.stage.done .hint{opacity:0}
+</style>
+</head>
+<body>
+
+<div class="stage" id="stage">
+  <img class="bottle" src="assets/pour/bottle.png" alt="">
+  <img class="splash" src="assets/pour/splash.png" alt="">
+
+  <img class="sp sp-big" id="spBig" src="assets/pour/sparkBig.png" alt="">
+  <img class="sp sp-a"   id="spA"   src="assets/pour/sparkA.png" alt="">
+  <img class="sp sp-b"   id="spB"   src="assets/pour/sparkB.png" alt="">
+  <img class="sp sp-c"   id="spC"   src="assets/pour/sparkC.png" alt="">
+  <img class="sp sp-d"   id="spD"   src="assets/pour/sparkD.png" alt="">
+
+  <button class="puck" id="puck" aria-label="Pour the drink">
+    <svg class="heart" viewBox="0 0 72 72" fill="none">
+      <defs>
+        <clipPath id="heartClip">
+          <path d="M49.3365 14.9502C56.7674 14.9504 62.7914 20.9743 62.7915 28.4053C62.7915 28.5644 62.7872 28.723 62.7818 28.8809C62.3671 42.1248 44.7447 53.1525 35.8804 59.8008C27.0229 53.1577 9.42241 42.1419 8.98099 28.9121C8.97476 28.744 8.97025 28.5749 8.97025 28.4053C8.97033 20.9742 14.9943 14.9503 22.4253 14.9502C29.8564 14.9502 35.8803 20.9742 35.8804 28.4053C35.8805 20.9742 41.9054 14.9502 49.3365 14.9502Z"/>
+        </clipPath>
+      </defs>
+      <g clip-path="url(#heartClip)">
+        <g class="liquid">
+          <path class="wave" fill="#F8C925"
+                d="M0 4 q 9 -5 18 0 t 18 0 t 18 0 t 18 0 t 18 0 V 80 H 0 Z"/>
+        </g>
+      </g>
+      <path d="M49.3365 14.9502C56.7674 14.9504 62.7914 20.9743 62.7915 28.4053C62.7915 28.5644 62.7872 28.723 62.7818 28.8809C62.3671 42.1248 44.7447 53.1525 35.8804 59.8008C27.0229 53.1577 9.42241 42.1419 8.98099 28.9121C8.97476 28.744 8.97025 28.5749 8.97025 28.4053C8.97033 20.9742 14.9943 14.9503 22.4253 14.9502C29.8564 14.9502 35.8803 20.9742 35.8804 28.4053C35.8805 20.9742 41.9054 14.9502 49.3365 14.9502Z"
+            fill="none" stroke="#fff" stroke-width="4.4851"/>
+    </svg>
+  </button>
+
+  <div class="hint">tap the heart</div>
+</div>
+
+<script>
+  const stage = document.getElementById('stage');
+  const timers = [];
+  const later = (fn, ms) => timers.push(setTimeout(fn, ms));
+  const burst = el => { el.classList.remove('show'); void el.offsetWidth; el.classList.add('show'); };
+
+  /* Storyboard: 1 empty heart alone -> 2 bottle arrives -> 3 pours, heart fills -> 4 full heart, sparks */
+  function play(){
+    timers.forEach(clearTimeout); timers.length = 0;
+    stage.classList.remove('hold','pour','done');
+    document.querySelectorAll('.sp').forEach(s => s.classList.remove('show'));
+    void stage.offsetWidth;                       // frame 1 — heart alone, empty
+
+    stage.classList.add('hold');                  // frame 2 — bottle in shot, heart still empty
+    later(() => {                                 // frame 3 — tips over and pours
+      stage.classList.remove('hold');
+      stage.classList.add('pour');
+      later(() => burst(document.getElementById('spA')),   380);
+      later(() => burst(document.getElementById('spBig')), 500);
+    }, 480);
+    later(() => {                                 // frame 4 — bottle out, heart full
+      stage.classList.remove('pour');
+      stage.classList.add('done');
+      burst(document.getElementById('spB'));
+      later(() => burst(document.getElementById('spC')), 90);
+      later(() => burst(document.getElementById('spD')), 170);
+    }, 1980);
+  }
+
+  document.getElementById('puck').addEventListener('click', play);
+</script>
+</body>
+</html>

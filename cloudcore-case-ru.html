@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Raily&nbsp;— Карты лояльности для&nbsp;IoT-автомойки</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F0F0F0;
+    --card:#EAEAEA;
+    --ink:#000;
+    --gray:#5E5E5E;
+    --line:#E3E3E1;
+    --radius:8px;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:'PP Neue Montreal','Neue Montreal','Inter',system-ui,sans-serif;
+    background:var(--bg);color:var(--ink);
+    font-size:16px;line-height:1.4;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{color:inherit;text-decoration:none}
+  a:hover{text-decoration:underline}
+  img{display:block}
+
+  .frame{width:1440px;margin:0 auto;position:relative;background:var(--bg)}
+  /* 1920x1080: scale the whole 1440 canvas as one piece — the same 1.2 the home page uses,
+     which lands the column at 1728 wide with an even 96px either side. */
+  @media (min-width:1800px){ body{zoom:1.2} }
+
+  /* ---------- header over hero ---------- */
+  /* ---------- hero ----------
+     Same treatment as the card on the home page — the tint runs edge to edge, the mockup
+     sits on it as a transparent PNG so it can be placed freely. Figures are on the 1440
+     canvas: the menu ends at 62; the mockup is 760 wide (472 tall) with 100 clear above
+     it from the menu and 100 below it to the band's edge. body zoom scales it at 1920. */
+  .hero{background:#dde4e0}
+  .hero-in{position:relative;width:1440px;height:734px;margin:0 auto}
+  .hero-in>img{position:absolute;left:50%;top:162px;width:760px;height:auto;transform:translateX(-50%)}
+  /* ---------- site menu — same markup, metrics and behaviour as the home page ---------- */
+  .topbar{position:fixed;top:0;left:0;right:0;z-index:60;padding:40px 0 18px;
+          pointer-events:none;transition:background .35s ease}
+  /* transparent over the hero image, exactly as on the home page; once the page scrolls
+     past it the bar takes the paper colour so body copy doesn't run under bare text */
+  body.scrolled .topbar{background:var(--bg)}
+  .topbar .inner{width:1440px;margin:0 auto;padding:0 60px;display:flex;
+                 justify-content:space-between;align-items:center;pointer-events:auto}
+  .topbar a{font-size:16px;font-weight:500;line-height:22px;color:var(--ink);
+            text-decoration:none;transition:color .45s ease}
+  .topbar a:hover{text-decoration:none}
+  .topbar .links{display:flex;gap:24px}
+  .topbar .links a{position:relative}
+  .topbar .links a::after{content:'';position:absolute;left:0;right:0;bottom:-2px;height:1px;
+                          background:currentColor;transform:scaleX(0);transform-origin:left;
+                          transition:transform .25s ease}
+  .topbar .links a:hover::after{transform:scaleX(1)}
+  
+  /* ---------- content grid ---------- */
+  .content{position:relative;padding:73px 0 300px}
+  .guides{position:absolute;inset:0;pointer-events:none}
+  .guides i{position:absolute;top:0;bottom:0;width:1px;background:var(--line)}
+  .cols{position:relative;display:flex}
+  .sidebar{width:204px;margin-left:64px;flex:none}
+  .main{width:984px;margin-left:124px;flex:none}
+
+  /* ---------- sidebar ---------- */
+  .back{font-size:20px;display:inline-block}
+  .sidenav{margin-top:133px;position:sticky;top:40px;display:flex;flex-direction:column;gap:8px}
+  .sidenav a{line-height:18px}
+
+  /* ---------- typography ---------- */
+  h1{font-size:40px;font-weight:400;line-height:44px;max-width:974px}
+  .intro{margin-top:40px;max-width:863px}
+  h2{font-size:32px;font-weight:400;line-height:1.25;margin-top:8px}
+  .label{font-size:16px;letter-spacing:.02em}
+  section{scroll-margin-top:40px}
+  p+p{margin-top:12px}
+
+  .meta{display:flex;margin-top:52px}
+  .meta>div{width:288px;margin-right:40px}
+  .meta>div:last-child{width:328px;margin-right:0}
+  .meta .k{color:var(--gray)}
+  .meta .v{margin-top:12px;display:flex;flex-direction:column;gap:8px}
+
+  /* ---------- cards ---------- */
+  .card{background:var(--card);border-radius:var(--radius)}
+  .problem-card{margin-top:52px;width:984px;padding:32px}
+  .problem-card h2{max-width:675px}
+  .problem-card p{margin-top:40px;max-width:716px}
+
+  .sect{margin-top:52px}
+  .sect>p{margin-top:20px;max-width:794px}
+
+  /* research role cards */
+  .roles4{margin-top:60px;display:flex;gap:24px}
+  .rolecard{width:228px;height:269px;background:var(--card);border-radius:var(--radius);padding:20px;display:flex;flex-direction:column}
+  .rolecard img{width:52px;height:52px}
+  .rolecard .rt{margin-top:auto;font-size:24px;line-height:1.2}
+  .rolecard .rd{margin-top:14px;max-width:185px}
+
+  .sublabel{margin-top:52px}
+  .carousel{margin-top:38px;width:820px;height:700px;position:relative;padding:32px}
+  .carousel .hyp{font-size:16px}
+  .car-btn{position:absolute;top:50%;transform:translateY(-50%);width:44px;height:44px;border-radius:50%;
+           background:#DFDFDF;border:0;cursor:pointer;display:flex;align-items:center;justify-content:center}
+  .car-btn svg{width:16px;height:16px;stroke:#000;stroke-width:1.6;fill:none}
+  .car-btn.prev{left:40px}
+  .car-btn.next{right:40px}
+  .carousel .shot{position:absolute;left:117px;top:111px;width:586px;height:366px}
+  .carousel .cap{position:absolute;left:32px;top:590px;max-width:520px;line-height:1.15}
+  /* heading is a separate line with 24px paragraph spacing below it, as in Figma */
+  .carousel .cap b{font-weight:400;display:block;margin-bottom:24px}
+  .carousel .shot,.carousel .cap,.carousel .hyp{transition:opacity .22s ease}
+  .carousel.switching .shot,.carousel.switching .cap,.carousel.switching .hyp{opacity:0}
+
+  /* solution */
+  .solution-intro{margin-top:38px;max-width:820px}
+  .sol-grid{margin-top:40px;display:grid;grid-template-columns:386px 386px;column-gap:48px;row-gap:32px}
+  .sol-grid .lead{display:block}
+  /* live prototype in the same device frame the static hypothesis shots use:
+     white body, 1px black outline, 24px radius, 1.6 aspect ratio */
+  .proto-card{margin-top:52px;width:820px;height:562px;display:flex;align-items:center;justify-content:center}
+  .proto-frame{width:704px;height:440px;background:#fff;border:1.5px solid #000;border-radius:24px;overflow:hidden}
+  /* 704/1440 = 0.48889 → shows exactly the 1440x900 artboard from Figma */
+  .proto-frame iframe{width:1440px;height:900px;border:0;display:block;
+                      transform:scale(0.488889);transform-origin:0 0}
+  .solution-note{margin-top:40px;max-width:777px}
+
+  .results{margin-top:52px}
+  .cards3{margin-top:38px;display:flex;gap:48px}
+  .rcard{width:280px;height:255px;background:#fff;border-radius:var(--radius);padding:32px;position:relative}
+  .rcard img{width:52px;height:52px}
+  .rcard .t{position:absolute;left:32px;bottom:32px;font-size:24px;line-height:26px;max-width:216px}
+
+  .learnings{margin-top:52px}
+  .lcols{margin-top:20px;display:flex;gap:48px}
+  .lcols>div{width:280px}
+  /* ---------- CloudCore extras ---------- */
+  .quotes{display:flex;gap:64px;margin-top:40px}
+  .quote{width:311px}
+  .quote p{font-size:14px;line-height:1.35;margin:0}
+  .quote .who{display:flex;align-items:center;gap:8px;margin-top:20px}
+  .quote .av{width:40px;height:40px;border-radius:50%;background:#fff;flex:none}
+  .quote .nm{font-size:14px;line-height:17px}
+  .quote .rl{font-size:14px;line-height:17px;color:var(--gray)}
+  .research-img{display:block;margin-top:52px;width:280px;height:266px;object-fit:cover;border-radius:var(--radius)}
+  /* Prototypes are embedded the way the Carbanara page does it: the 393x812 phone is rendered
+     in an 830x830 iframe and scaled to 0.58, which lands it at 472 tall on the light card —
+     the same size the other cases use for phone screenshots. */
+  .proto-wrap{width:493px;height:482px;overflow:hidden;flex:none}
+  .proto-wrap iframe{width:830px;height:812px;border:0;transform:scale(0.5936);transform-origin:0 0;display:block}   /* 812 * .5936 = 482, as in Figma 89:15778 */
+  .solution-card{margin-top:40px;width:820px;height:562px;display:flex;align-items:center;justify-content:center}
+  /* rejected solutions: live prototypes stacked in one 481x481 slot, exactly where the screenshot sits elsewhere */
+  .carousel .hyp-stage{position:absolute;left:50%;top:74px;transform:translateX(-50%);width:493px;height:482px;overflow:hidden}
+  .carousel .hyp-stage iframe{position:absolute;left:0;top:0;width:830px;height:812px;border:0;transform:scale(0.5936);transform-origin:0 0;opacity:0;pointer-events:none;transition:opacity .25s ease}
+  .carousel .hyp-stage iframe.on{opacity:1;pointer-events:auto}
+  /* caption anchored to the card's bottom edge: it has a heading plus a paragraph, so it is taller
+     than Carbanara's one-liner and would spill past the 700 if pinned at 614 */
+  .carousel .cap{top:auto;bottom:40px;max-width:700px;line-height:22px}
+  .carousel .cap b{margin-bottom:8px}
+
+  /* ---------- footer ----------
+     Same footer as the home page. There the left column is taken by the docked name and
+     index; here nothing is fixed, so the name sits in that column itself, with a way back. */
+  .footer{position:relative;width:1440px;height:628px;margin:0 auto;
+          border-top:1px solid var(--line)}
+  .footer .who{position:absolute;left:64px;top:166px;width:204px;font-size:20px;line-height:22px}
+  .footer .who i{font-family:'PP Editorial Old','Times New Roman',Georgia,serif;font-style:italic}
+  .footer .all{position:absolute;left:64px;top:262px;font-size:16px;line-height:18px}
+  .footer .ask{position:absolute;left:392px;top:166px;width:416px;margin:0;   /* page h2 carries a margin */
+               font-size:40px;line-height:44px;font-weight:500;letter-spacing:-.01em}
+  .footer .say{position:absolute;left:392px;top:254px;font-family:'PP Editorial Old','Times New Roman',Georgia,serif;
+               font-style:italic;font-size:40px;line-height:44px}
+  .footer .mail{position:absolute;left:392px;top:369px;font-size:32px;line-height:34px;letter-spacing:-.01em;
+                border-bottom:1px solid currentColor;padding-bottom:2px;transition:opacity .2s ease}
+  .footer .mail:hover{opacity:.55;text-decoration:none}
+  .footer .social{position:absolute;left:1049px;top:166px;width:332px;display:flex;flex-direction:column;gap:8px}
+  .footer .social a{align-self:flex-start;position:relative;font-size:16px;line-height:18px;text-decoration:none}
+  .footer .social a::after{content:'';position:absolute;left:0;right:0;bottom:-2px;height:1px;
+                           background:currentColor;transform:scaleX(0);transform-origin:left;transition:transform .25s ease}
+  .footer .social a:hover::after{transform:scaleX(1)}
+  .footer .note{position:absolute;left:1049px;top:369px;width:332px;font-size:14px;line-height:22px;opacity:.7}
+  .footer .legal,.footer .up{position:absolute;top:506px;font-size:14px;line-height:22px}
+  .footer .legal{left:392px;opacity:.55}
+  .footer .up{left:1049px;display:inline-flex;gap:6px;text-decoration:none}
+  .footer .up i{font-style:normal;display:inline-block;transition:transform .25s ease}
+  .footer .up:hover i{transform:translateY(-3px)}
+  .footer a:hover{text-decoration:none}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="inner">
+    <a href="index-ru.html">Raily</a>
+    <div class="links">
+      <a href="cloudcore-case.html" class="lang" title="English version">EN</a>
+      <a href="#" target="_blank" rel="noopener">Instagram</a>
+      <a href="https://www.linkedin.com/in/ranabuvi-abdrakhmanova-339891267/" target="_blank" rel="noopener">LinkedIn</a>
+      <a href="https://www.behance.net/rinaraily" target="_blank" rel="noopener">Behance</a>
+      <a href="#" target="_blank" rel="noopener">Резюме</a>
+    </div>
+  </div>
+</header>
+
+<div class="hero">
+  <div class="hero-in">
+    <img src="assets/home/mockups/cloudcore.png" alt="CloudCore — карты лояльности для автомойки">
+  </div>
+</div>
+
+<div class="frame">
+  <!-- the grid spans the whole frame, footer included, so it never stops mid-page -->
+  <div class="guides">
+    <i style="left:64px"></i><i style="left:392px"></i><i style="left:721px"></i>
+    <i style="left:1049px"></i><i style="left:1377px"></i>
+  </div>
+
+  <div class="content">
+
+    <div class="cols">
+      <aside class="sidebar">
+        <a class="back" href="javascript:history.back()">&larr; Назад</a>
+        <nav class="sidenav">
+          <a href="#about">О&nbsp;проекте</a>
+          <a href="#problem">Проблема</a>
+          <a href="#research">Исследование</a>
+          <a href="#ideation">Идеи</a>
+          <a href="#solution">Решение</a>
+          <a href="#learnings">Выводы</a>
+        </nav>
+      </aside>
+
+      <main class="main">
+        <section id="about">
+          <h1>Карты лояльности для&nbsp;автомоечного IoT-сервиса&nbsp;— от&nbsp;идеи до&nbsp;запуска</h1>
+          <p class="intro">CloudCore&nbsp;— IoT-платформа для&nbsp;моек самообслуживания. Я&nbsp;провела функцию карт лояльности от&nbsp;первой идеи до&nbsp;запуска: владельцы заказывают брендированные RFID-карты, активируют их&nbsp;прямо на&nbsp;терминале мойки и&nbsp;ведут всю программу&nbsp;— правила, балансы, аналитику&nbsp;— из&nbsp;приложения.<br>Мой вклад: исследование с&nbsp;владельцами и&nbsp;клиентами, продуктовая концепция, весь UI-дизайн и&nbsp;прототипирование.</p>
+          <div class="meta">
+            <div><div class="k">Роль</div><div class="v"><span>Product / UX / UI Designer</span></div></div>
+            <div><div class="k">Сроки</div><div class="v"><span>01/07/25&nbsp;— настоящее время</span></div></div>
+            <div><div class="k">Методы</div><div class="v"><span>JTBD</span><span>UIUX Design</span><span>Сompetitive analysis</span><span>Prototyping</span></div></div>
+          </div>
+        </section>
+
+        <section id="problem">
+          <div class="card problem-card">
+            <div class="label">ПРОБЛЕМА</div>
+            <h2>Владельцам моек нечем удерживать клиентов&nbsp;— инструмента лояльности просто нет</h2>
+            <p>Рынок моек самообслуживания растёт, конкуренция ужесточается. Владельцам нечем было стимулировать повторные визиты и&nbsp;выделяться среди конкурентов. При&nbsp;этом мы&nbsp;как&nbsp;платформа хотели повысить свою ценность для&nbsp;B2B-клиентов&nbsp;— не&nbsp;беря на&nbsp;себя логистику производства физических карт.</p>
+            <div class="quotes">
+              <div class="quote">
+                <p>«Мне нужно, чтобы клиенты возвращались ко&nbsp;мне, а&nbsp;не&nbsp;ехали на&nbsp;соседнюю мойку».</p>
+                <div class="who"><span class="av"></span><div><div class="nm">Тимур</div><div class="rl">Владелец мойки (B2B)</div></div></div>
+              </div>
+              <div class="quote">
+                <p>«Хочу видеть, сколько накопил,&nbsp;— и&nbsp;получать что-то&nbsp;за&nbsp;то, что&nbsp;остаюсь».</p>
+                <div class="who"><span class="av"></span><div><div class="nm">Алекс</div><div class="rl">Клиент мойки (B2C)</div></div></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="research" class="sect">
+          <div class="label">ИССЛЕДОВАНИЕ</div>
+          <h2>Аудитория выбирает физические карты, а&nbsp;не&nbsp;удобство&nbsp;— это и&nbsp;задаёт формат</h2>
+          <p>Анализ конкурентов и&nbsp;интервью с&nbsp;владельцами моек показали ясную картину: цифровые карты в&nbsp;Wallet удобны, но&nbsp;не&nbsp;работают для&nbsp;пёстрой аудитории моек самообслуживания. Клиенты сильно различаются по&nbsp;возрасту и&nbsp;цифровой грамотности, так что&nbsp;физические брендированные карты обязательны. При&nbsp;этом никто из&nbsp;конкурентов не&nbsp;предлагал встроенную лояльность на&nbsp;уровне IoT-платформы&nbsp;— для&nbsp;нас это была очевидная возможность.</p>
+          <img class="research-img" src="assets/cloudcore/research.png" alt="Чистая RFID-карта с напечатанным номером">
+        </section>
+
+        <section id="ideation" class="sect">
+          <div class="label">ИДЕИ</div>
+          <h2>Как&nbsp;подключать карты: три подхода, одно финальное решение</h2>
+          <p>Самой сложной частью проекта стало подключение карт. Мы&nbsp;не&nbsp;производим их&nbsp;сами, поэтому проверить их&nbsp;данные привычными способами было нельзя.</p>
+
+          <div class="label sublabel">Отклонённые решения</div>
+          <div class="card carousel">
+            <div class="hyp" id="hypTitle">Гипотеза 1</div>
+            <div class="hyp-stage">
+              <iframe class="on" src="loyalty-flow/hypothesis-1.html?embed=1" title="Гипотеза 1 — ручной ввод номеров карт, интерактивный прототип"></iframe>
+              <iframe src="loyalty-flow/hypothesis-2.html?embed=1" title="Гипотеза 2 — сканирование карты камерой телефона, интерактивный прототип" loading="lazy"></iframe>
+              <iframe src="loyalty-flow/hypothesis-3.html?embed=1" title="Гипотеза 3 — цифровая карта в Apple / Google Wallet, интерактивный прототип" loading="lazy"></iframe>
+            </div>
+            <button class="car-btn prev" aria-label="Назад" onclick="hyp(-1)"><svg viewBox="0 0 16 16"><path d="M10 3 L5 8 l5 5"/></svg></button>
+            <button class="car-btn next" aria-label="Вперёд" onclick="hyp(1)"><svg viewBox="0 0 16 16"><path d="M6 3 L11 8 l-5 5"/></svg></button>
+            <p class="cap" id="hypCap"><b>Ручной ввод номеров карт</b>Слишком трудоёмко при&nbsp;большом объёме. Импорт таблицы закрывал проблему лишь отчасти&nbsp;— плохо масштабировался и&nbsp;был неудобен большинству владельцев.</p>
+          </div>
+        </section>
+
+        <section id="solution" class="sect">
+          <div class="label">РЕШЕНИЕ</div>
+          <p class="solution-intro"><b style="font-weight:400;display:block">Карты лояльности как&nbsp;часть платформы&nbsp;— без&nbsp;логистики на&nbsp;нашей стороне</b>Владельцы заказывают брендированные RFID-карты у&nbsp;сторонних поставщиков и&nbsp;активируют их&nbsp;прямо через терминал мойки. В&nbsp;приложении они настраивают правила лояльности, управляют балансами клиентов и&nbsp;следят за&nbsp;использованием карт в&nbsp;аналитике. Мы&nbsp;даём только программный слой&nbsp;— вся ответственность за&nbsp;карты остаётся у&nbsp;владельца, и&nbsp;операционных рисков у&nbsp;нас нет.</p>
+          <div class="card solution-card">
+            <div class="proto-wrap">
+              <iframe src="loyalty-flow/index.html?embed=1" title="Прототип программы лояльности — настройка бонусов и активация карт"></iframe>
+            </div>
+          </div>
+          <div class="solution-note">
+            <p><span style="display:block">RFID-считыватель в&nbsp;терминале + режим подключения карт, с&nbsp;встроенными акциями</span>Мы&nbsp;использовали встроенный RFID-считыватель платы терминала. Владелец включает в&nbsp;приложении специальный режим и&nbsp;прикладывает карты к&nbsp;терминалу&nbsp;— они автоматически добавляются в&nbsp;систему. Инструкция встроена прямо в&nbsp;интерфейс.</p>
+          </div>
+        </section>
+
+        <section class="results">
+          <div class="label">РЕЗУЛЬТАТЫ</div>
+          <div class="cards3">
+            <div class="rcard"><img src="assets/cloudcore/ico-live.svg" alt=""><div class="t">Функция запущена и&nbsp;стала частью ежедневной работы владельцев моек.</div></div>
+            <div class="rcard"><img src="assets/cloudcore/ico-tool.svg" alt=""><div class="t">У&nbsp;владельцев моек появился инструмент, который возвращает клиентов.</div></div>
+            <div class="rcard"><img src="assets/cloudcore/ico-standout.svg" alt=""><div class="t">Функция помогла платформе выделиться на&nbsp;конкурентном рынке.</div></div>
+          </div>
+        </section>
+
+        <section id="learnings" class="learnings">
+          <div class="label">ВЫВОДЫ</div>
+          <div class="lcols">
+            <div><p><span style="display:block">Бизнес-контекст важнее дизайнерской интуиции</span>Прежде чем садиться за&nbsp;дизайн, важно провести границу между продуктом и&nbsp;клиентом. Решение с&nbsp;картами сложилось только после глубокого понимания бизнес-модели.</p></div>
+            <div><p><span style="display:block">Железо определяет UX</span>Физические ограничения&nbsp;— RFID и&nbsp;возможности терминала&nbsp;— подтолкнули к&nbsp;элегантному решению: использовать существующую инфраструктуру, а&nbsp;не&nbsp;создавать новую.</p></div>
+            <div><p><span style="display:block">Баланс двух разных мышлений</span>B2B- и&nbsp;B2C-пользователи думают о&nbsp;продукте принципиально по-разному. Работа в&nbsp;одиночку, без&nbsp;дизайн-команды, означала постоянное переключение контекста и&nbsp;проверку решений своими силами.</p></div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <footer class="footer" id="contact">
+    <p class="who">Рина Абдрахманова<br><i>UI/ UX /Product Designer</i></p>
+    <a class="all" href="index-ru.html">&larr; Все кейсы</a>
+
+    <h2 class="ask">Есть проект<br>на&nbsp;примете?</h2>
+    <p class="say">Давайте обсудим.</p>
+    <a class="mail" href="mailto:ranabuvia@gmail.com">ranabuvia@gmail.com</a>
+
+    <nav class="social" aria-label="Соцсети">
+      <a href="#" target="_blank" rel="noopener">Instagram</a>
+      <a href="https://www.linkedin.com/in/ranabuvi-abdrakhmanova-339891267/" target="_blank" rel="noopener">LinkedIn</a>
+      <a href="https://www.behance.net/rinaraily" target="_blank" rel="noopener">Behance</a>
+      <a href="#" target="_blank" rel="noopener">Резюме</a>
+    </nav>
+    <p class="note">Живу в&nbsp;Алматы, работаю с&nbsp;командами по&nbsp;всему миру. Открыта для&nbsp;продуктовых задач&nbsp;— B2B SaaS, IoT и&nbsp;финтех.</p>
+
+    <p class="legal">© 2026 Рина Абдрахманова</p>
+    <a class="up" href="#" onclick="window.scrollTo({top:0,behavior:'smooth'});return false">Наверх <i>↑</i></a>
+  </footer>
+
+</div>
+<script>
+  // rejected-solutions carousel — three live prototypes in loyalty-flow/, captions from Figma 319:50084
+  const HYPS = [
+    {title:'Гипотеза 1', head:'Ручной ввод номеров карт',
+     cap:'Слишком трудоёмко при большом объёме. Импорт таблицы закрывал проблему лишь отчасти — плохо масштабировался и был неудобен большинству владельцев.'},
+    {title:'Гипотеза 2', head:'Сканирование камерой телефона',
+     cap:'Мы не контролируем качество печати на картах, и данные могут быть нечитаемы. А проверить их нельзя, не списав с карты по-настоящему, — риск ошибок слишком высок.'},
+    {title:'Гипотеза 3', head:'Apple / Google Wallet',
+     cap:'Отличное UX-решение — но не для этой аудитории. Владельцу важна физическая карта: это и инструмент брендинга, и осязаемый, понятный клиенту предмет.'}
+  ];
+  let hypIdx = 0;
+  function hyp(dir){
+    hypIdx = (hypIdx + dir + HYPS.length) % HYPS.length;
+    const c = document.querySelector('.carousel'), h = HYPS[hypIdx];
+    c.classList.add('switching');
+    document.querySelectorAll('.hyp-stage iframe').forEach((f, i) => f.classList.toggle('on', i === hypIdx));
+    setTimeout(() => {
+      document.getElementById('hypTitle').textContent = h.title;
+      document.getElementById('hypCap').innerHTML = '<b>' + h.head + '</b>' + h.cap;
+      c.classList.remove('switching');
+    }, 220);
+  }
+</script>
+<script>
+  /* The menu is fixed, so it has to switch from white to black the moment it stops sitting
+     over the hero image. Measured off the hero's own position rather than a hard-coded
+     height, so it survives the 1.2 zoom at 1920. */
+  (function(){
+    const hero = document.querySelector('.hero');
+    if (!hero) return;
+    const onScroll = () => {
+      document.body.classList.toggle('scrolled', hero.getBoundingClientRect().bottom < 80);
+    };
+    addEventListener('scroll', onScroll, { passive: true });
+    addEventListener('resize', onScroll);
+    onScroll();
+  })();
+</script>
+<script src="assets/reveal.js"></script>
+</body>
+</html>

@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Select a pin — microinteraction</title>
+<style>
+  :root{ --green:#7FEE28; --stage:#141414 }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:var(--stage);min-height:100vh;display:flex;align-items:center;justify-content:center;
+       font-family:'PP Neue Montreal','Inter',system-ui,sans-serif;color:#fff}
+
+  /* 518x536 artboard, matches the Figma frame crop exactly (map.png is the pre-cropped render) */
+  .stage{position:relative;width:518px;height:536px;flex:none;user-select:none;overflow:hidden;
+         border-radius:8px;background:#141414}
+  .stage img{position:absolute;pointer-events:none;-webkit-user-drag:none}
+  .map{left:0;top:0;width:518px;height:536px}
+
+  /* ---------- pin ---------- */
+  .pin-btn{position:absolute;left:262px;top:253px;width:110px;height:110px;
+           transform:translate(-50%,-50%);border:0;background:none;padding:0;cursor:pointer}
+  .pin-btn img{position:absolute;left:50%;top:50%}
+  /* idle badge: plain circle, no tail — bounding box centre IS the map anchor */
+  .pin-small{width:76.75px;height:76.75px;transform:translate(-50%,-50%);
+             transition:opacity .3s ease,transform .35s cubic-bezier(.34,1.56,.64,1)}
+  /* selected badge: teardrop, tip points at the map anchor — nudged up so the tip (not the render bbox centre) lands on it */
+  .pin-big{width:104.5px;height:114.75px;transform:translate(-50%,-68%) scale(.4);opacity:0;
+           transition:opacity .3s ease,transform .35s cubic-bezier(.34,1.56,.64,1)}
+  .stage.selected .pin-small{opacity:0;transform:translate(-50%,-50%) scale(.5)}
+  .stage.selected .pin-big{opacity:1;transform:translate(-50%,-68%) scale(1)}
+
+  .pin-label{position:absolute;left:182px;top:284px;width:160px;text-align:center;
+             font:700 14px/1.2 Montserrat,'PP Neue Montreal',sans-serif;text-transform:uppercase;
+             letter-spacing:.02em;text-shadow:0 1px 4px rgba(0,0,0,.7);pointer-events:none}
+
+  /* ---------- favourite heart ---------- */
+  .heart{left:406px;top:373.74px;width:31px;height:31px;opacity:0;transform:scale(.5);
+         transition:opacity .3s ease .1s,transform .3s cubic-bezier(.34,1.56,.64,1) .1s}
+  .stage.selected .heart{opacity:1;transform:scale(1)}
+
+  /* ---------- venue card ----------
+     Resting positions only — the move from CARD_HIDDEN to CARD_SHOWN is driven from JS
+     in lockstep with the hand (see revealCard()), so the card reads as being pulled out
+     rather than sliding up on its own. The CSS transition below only handles putting it
+     back away (pin tapped a second time), which needs no hand. */
+  .card{position:absolute;left:42px;top:552px;width:433px;height:142px;background:#141414;
+        border-radius:9px;box-shadow:0 20px 40px rgba(0,0,0,.45);overflow:hidden;
+        transition:top .4s cubic-bezier(.4,0,.2,1)}
+  .card .photo{left:0;top:0;width:128px;height:142px;object-fit:cover}
+  .card .content{position:absolute;left:157px;top:17.74px;width:225px}
+  .card .content h3{margin:0;font-size:26.6px;line-height:1;font-weight:800;color:#fff}
+  .card .content p{margin:9px 0 0;font-size:15px;font-weight:600;color:#fff;opacity:.64}
+  .cta{position:absolute;left:157px;top:92.01px;width:141.89px;height:31.04px;border:0;
+       border-radius:999px;background:var(--green);color:#000;font:700 11px/1 Montserrat,sans-serif;
+       text-transform:uppercase;letter-spacing:.04em;cursor:pointer;pointer-events:none;
+       transition:transform .18s cubic-bezier(.34,1.56,.64,1)}
+  .stage.selected .cta{pointer-events:auto}
+  .cta.press{animation:press .4s cubic-bezier(.34,1.56,.64,1)}
+  @keyframes press{0%{transform:scale(1)}45%{transform:scale(.88)}100%{transform:scale(1)}}
+
+  /* ---------- hand ----------
+     Full arm asset, drawn twice at the same position/size so the card can sit
+     between the two copies: hand-back (behind the card — wrist, fingers, sleeve)
+     and hand-front (in front, clipped down to just the thumb) so the thumb visibly
+     presses onto the card's face while the rest of the hand grips it from behind.
+     Also reused for the "meet here" tap (see .tapped/.tap-out below). During the
+     card reveal, top is set directly from JS on both copies so they stay locked to
+     the card's edge while moving together. */
+  .hand-back,.hand-front{left:109.7px;top:669px;width:265.3px;height:413.6px;opacity:0;
+        transition:top .4s cubic-bezier(.3,.6,.3,1),opacity .2s ease}
+  /* clip-path hugs the thumb's silhouette and ends in a flat cut at 36% of the image.
+     The card's bottom edge sits at 32.56% (measured), so that cut lands just BELOW it —
+     in the strip between the two, this layer paints exactly the pixels .hand-back already
+     paints over the map, so the join is invisible and the thumb reads as one continuous
+     digit lying on the card. Fading it out instead (a soft mask) made the thumb look like
+     it was dissolving into / piercing the card, and cutting above the edge left a stump. */
+  .hand-front{clip-path:polygon(30% 20%,33% 24%,36% 29%,37% 34%,37% 36%,19.8% 36%,19% 34%,20% 29%,23% 24%,27% 21%)}
+  .stage.tapped .hand-back,.stage.tapped .hand-front{top:359.34px;opacity:1}
+  .stage.tap-out .hand-back,.stage.tap-out .hand-front{top:529px;opacity:0;transition:top .5s ease-in,opacity .4s ease .15s}
+
+  .hint{position:absolute;left:0;right:0;bottom:24px;text-align:center;font-size:14px;color:#5f5f5f;
+        transition:opacity .3s}
+  .stage.selected .hint{opacity:0}
+</style>
+</head>
+<body>
+
+<div class="stage" id="stage">
+  <img class="map" src="assets/pin/map.png" alt="">
+
+  <button class="pin-btn" id="pinBtn" aria-label="Select Peaky Blinders">
+    <img class="pin-small" src="assets/pin/pin-small.png" alt="">
+    <img class="pin-big" src="assets/pin/pin-big.png" alt="">
+  </button>
+  <div class="pin-label">Peaky Blinders</div>
+
+  <img class="heart" src="assets/pin/heart.png" alt="">
+
+  <img class="hand-back" id="handBack" src="assets/pin/hand-arm-clean.png" alt="">
+
+  <div class="card" id="card">
+    <img class="photo" src="assets/pin/photo.png" alt="">
+    <div class="content">
+      <h3>Peaky blinders</h3>
+      <p>Restaurant</p>
+    </div>
+    <button class="cta" id="cta">Meet here</button>
+  </div>
+
+  <img class="hand-front" id="handFront" src="assets/pin/hand-arm-clean.png" alt="">
+
+  <div class="hint">tap the pin</div>
+</div>
+
+<script>
+  const stage = document.getElementById('stage');
+  const card = document.getElementById('card');
+  const handLayers = [document.getElementById('handBack'), document.getElementById('handFront')];
+  const cta = document.getElementById('cta');
+  const timers = [];
+  const later = (fn, ms) => timers.push(setTimeout(fn, ms));
+  const clear = () => { timers.forEach(clearTimeout); timers.length = 0; };
+
+  const CARD_HIDDEN = 552, CARD_SHOWN = 352;         // card's resting positions (px, top)
+  const HAND_TAP = 359.34;                            // hand's pose over the CTA (also used at the top of the carry)
+  const HAND_GRIP = HAND_TAP + (CARD_HIDDEN - CARD_SHOWN); // same offset, but down at the card's hidden position
+  const HAND_AWAY = 589;                              // fully clear of the stage
+
+  const setHand = (prop, value) => handLayers.forEach(el => { el.style[prop] = value; });
+  function clearHandStyle(){ handLayers.forEach(el => el.removeAttribute('style')); }
+
+  // Pin tapped on: a hand reaches down off-screen, grips the card and carries it up
+  // into view, then lets go and withdraws — the card is left sitting there.
+  function revealCard(){
+    clear();
+    setHand('transition', 'none');
+    setHand('top', (HAND_GRIP + 90) + 'px');
+    setHand('opacity', '0');
+    void handLayers[0].offsetWidth;
+
+    setHand('transition', 'top .3s ease-out, opacity .2s ease');
+    setHand('top', HAND_GRIP + 'px');                 // reach down and grip the (still hidden) card
+    setHand('opacity', '1');
+
+    later(() => {                                      // carry both up together, in lockstep
+      const dur = '.55s cubic-bezier(.22,1,.36,1)';
+      setHand('transition', `top ${dur}`);
+      card.style.transition = `top ${dur}`;
+      setHand('top', HAND_TAP + 'px');
+      card.style.top = CARD_SHOWN + 'px';
+    }, 300);
+
+    later(() => {                                       // let go and pull back out
+      setHand('transition', 'top .45s ease-in, opacity .4s ease .15s');
+      setHand('top', HAND_AWAY + 'px');
+      setHand('opacity', '0');
+    }, 300 + 550 + 120);
+
+    later(clearHandStyle, 300 + 550 + 120 + 450);       // hand free again for the CTA tap
+  }
+
+  function hideCard(){
+    clear();
+    clearHandStyle();
+    stage.classList.remove('tapped', 'tap-out');
+    card.style.transition = '';
+    card.style.top = CARD_HIDDEN + 'px';
+  }
+
+  document.getElementById('pinBtn').addEventListener('click', () => {
+    const willSelect = !stage.classList.contains('selected');
+    stage.classList.toggle('selected', willSelect);
+    if (willSelect) revealCard(); else hideCard();
+  });
+
+  cta.addEventListener('click', () => {
+    if (!stage.classList.contains('selected')) return;
+    if (stage.classList.contains('tapped') || stage.classList.contains('tap-out')) return;
+    clear();
+    stage.classList.add('tapped');                 // hand enters and rests on the button
+    later(() => {                                   // button acknowledges the tap
+      cta.classList.remove('press'); void cta.offsetWidth; cta.classList.add('press');
+    }, 380);
+    later(() => {                                    // hand withdraws back down
+      stage.classList.remove('tapped');
+      stage.classList.add('tap-out');
+    }, 650);
+    later(() => stage.classList.remove('tap-out'), 1150);
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Raily&nbsp;— Упрощаем работу с&nbsp;KYC-документами</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F0F0F0;
+    --card:#EAEAEA;
+    --ink:#000;
+    --gray:#5E5E5E;
+    --line:#E3E3E1;
+    --radius:8px;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:'PP Neue Montreal','Neue Montreal','Inter',system-ui,sans-serif;
+    background:var(--bg);color:var(--ink);
+    font-size:16px;line-height:1.4;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{color:inherit;text-decoration:none}
+  a:hover{text-decoration:underline}
+  img{display:block}
+
+  .frame{width:1440px;margin:0 auto;position:relative;background:var(--bg)}
+  /* 1920x1080: scale the whole 1440 canvas as one piece — the same 1.2 the home page uses,
+     which lands the column at 1728 wide with an even 96px either side. */
+  @media (min-width:1800px){ body{zoom:1.2} }
+
+  /* ---------- header over hero ---------- */
+  /* ---------- hero ----------
+     Same treatment as the card on the home page — the tint runs edge to edge, the mockup
+     sits on it as a transparent PNG so it can be placed freely. Figures are on the 1440
+     canvas: the menu ends at 62; the laptop is 673 wide (472 tall) with 100 clear above
+     it from the menu and 100 below it to the band's edge. body zoom scales it at 1920. */
+  .hero{background:#e8edf5}
+  .hero-in{position:relative;width:1440px;height:734px;margin:0 auto}
+  .hero-in>img{position:absolute;left:50%;top:162px;width:673px;height:auto;transform:translateX(-50%)}
+  /* ---------- site menu — same markup, metrics and behaviour as the home page ---------- */
+  .topbar{position:fixed;top:0;left:0;right:0;z-index:60;padding:40px 0 18px;
+          pointer-events:none;transition:background .35s ease}
+  /* transparent over the hero image, exactly as on the home page; once the page scrolls
+     past it the bar takes the paper colour so body copy doesn't run under bare text */
+  body.scrolled .topbar{background:var(--bg)}
+  .topbar .inner{width:1440px;margin:0 auto;padding:0 60px;display:flex;
+                 justify-content:space-between;align-items:center;pointer-events:auto}
+  .topbar a{font-size:16px;font-weight:500;line-height:22px;color:var(--ink);
+            text-decoration:none;transition:color .45s ease}
+  .topbar a:hover{text-decoration:none}
+  .topbar .links{display:flex;gap:24px}
+  .topbar .links a{position:relative}
+  .topbar .links a::after{content:'';position:absolute;left:0;right:0;bottom:-2px;height:1px;
+                          background:currentColor;transform:scaleX(0);transform-origin:left;
+                          transition:transform .25s ease}
+  .topbar .links a:hover::after{transform:scaleX(1)}
+  
+  /* ---------- content grid ---------- */
+  .content{position:relative;padding:73px 0 300px}
+  .guides{position:absolute;inset:0;pointer-events:none}
+  .guides i{position:absolute;top:0;bottom:0;width:1px;background:var(--line)}
+  .cols{position:relative;display:flex}
+  .sidebar{width:204px;margin-left:64px;flex:none}
+  .main{width:984px;margin-left:124px;flex:none}
+
+  /* ---------- sidebar ---------- */
+  .back{font-size:20px;display:inline-block}
+  .sidenav{margin-top:133px;position:sticky;top:40px;display:flex;flex-direction:column;gap:8px}
+  .sidenav a{line-height:18px}
+
+  /* ---------- typography ---------- */
+  h1{font-size:40px;font-weight:400;line-height:44px;max-width:974px}
+  .intro{margin-top:40px;max-width:863px}
+  h2{font-size:32px;font-weight:400;line-height:1.25;margin-top:8px}
+  .label{font-size:16px;letter-spacing:.02em}
+  section{scroll-margin-top:40px}
+  p+p{margin-top:12px}
+
+  .meta{display:flex;margin-top:52px}
+  .meta>div{width:288px;margin-right:40px}
+  .meta>div:last-child{width:328px;margin-right:0}
+  .meta .k{color:var(--gray)}
+  .meta .v{margin-top:12px;display:flex;flex-direction:column;gap:8px}
+
+  /* ---------- cards ---------- */
+  .card{background:var(--card);border-radius:var(--radius)}
+  .problem-card{margin-top:52px;width:984px;padding:32px}
+  .problem-card h2{max-width:675px}
+  .problem-card p{margin-top:40px;max-width:716px}
+
+  .sect{margin-top:52px}
+  .sect>p{margin-top:20px;max-width:794px}
+
+  /* research role cards */
+  .roles4{margin-top:60px;display:flex;gap:24px}
+  .rolecard{width:228px;height:269px;background:var(--card);border-radius:var(--radius);padding:20px;display:flex;flex-direction:column}
+  .rolecard img{width:52px;height:52px}
+  .rolecard .rt{margin-top:auto;font-size:24px;line-height:1.2}
+  .rolecard .rd{margin-top:14px;max-width:185px}
+
+  .sublabel{margin-top:52px}
+  .carousel{margin-top:38px;width:820px;height:700px;position:relative;padding:32px}
+  .carousel .hyp{font-size:16px}
+  .car-btn{position:absolute;top:50%;transform:translateY(-50%);width:44px;height:44px;border-radius:50%;
+           background:#DFDFDF;border:0;cursor:pointer;display:flex;align-items:center;justify-content:center}
+  .car-btn svg{width:16px;height:16px;stroke:#000;stroke-width:1.6;fill:none}
+  .car-btn.prev{left:40px}
+  .car-btn.next{right:40px}
+  .carousel .shot{position:absolute;left:117px;top:111px;width:586px;height:366px}
+  .carousel .cap{position:absolute;left:32px;top:590px;max-width:520px;line-height:1.15}
+  /* heading is a separate line with 24px paragraph spacing below it, as in Figma */
+  .carousel .cap b{font-weight:400;display:block;margin-bottom:24px}
+  .carousel .shot,.carousel .cap,.carousel .hyp{transition:opacity .22s ease}
+  .carousel.switching .shot,.carousel.switching .cap,.carousel.switching .hyp{opacity:0}
+
+  /* solution */
+  .solution-intro{margin-top:38px;max-width:820px}
+  .sol-grid{margin-top:40px;display:grid;grid-template-columns:386px 386px;column-gap:48px;row-gap:32px}
+  .sol-grid .lead{display:block}
+  /* live prototype in the same device frame the static hypothesis shots use:
+     white body, 1px black outline, 24px radius, 1.6 aspect ratio */
+  .proto-card{margin-top:52px;width:820px;height:562px;display:flex;align-items:center;justify-content:center}
+  .proto-frame{width:704px;height:440px;background:#fff;border:1.5px solid #000;border-radius:24px;overflow:hidden}
+  /* 704/1440 = 0.48889 → shows exactly the 1440x900 artboard from Figma */
+  .proto-frame iframe{width:1440px;height:900px;border:0;display:block;
+                      transform:scale(0.488889);transform-origin:0 0}
+  .solution-note{margin-top:40px;max-width:777px}
+
+  .results{margin-top:52px}
+  .cards3{margin-top:38px;display:flex;gap:48px}
+  .rcard{width:280px;height:255px;background:#fff;border-radius:var(--radius);padding:32px;position:relative}
+  .rcard img{width:52px;height:52px}
+  .rcard .t{position:absolute;left:32px;bottom:32px;font-size:24px;line-height:26px;max-width:216px}
+
+  .learnings{margin-top:52px}
+  .lcols{margin-top:20px;display:flex;gap:48px}
+  .lcols>div{width:280px}
+  /* ---------- footer ----------
+     Same footer as the home page. There the left column is taken by the docked name and
+     index; here nothing is fixed, so the name sits in that column itself, with a way back. */
+  .footer{position:relative;width:1440px;height:628px;margin:0 auto;
+          border-top:1px solid var(--line)}
+  .footer .who{position:absolute;left:64px;top:166px;width:204px;font-size:20px;line-height:22px}
+  .footer .who i{font-family:'PP Editorial Old','Times New Roman',Georgia,serif;font-style:italic}
+  .footer .all{position:absolute;left:64px;top:262px;font-size:16px;line-height:18px}
+  .footer .ask{position:absolute;left:392px;top:166px;width:416px;margin:0;   /* page h2 carries a margin */
+               font-size:40px;line-height:44px;font-weight:500;letter-spacing:-.01em}
+  .footer .say{position:absolute;left:392px;top:254px;font-family:'PP Editorial Old','Times New Roman',Georgia,serif;
+               font-style:italic;font-size:40px;line-height:44px}
+  .footer .mail{position:absolute;left:392px;top:369px;font-size:32px;line-height:34px;letter-spacing:-.01em;
+                border-bottom:1px solid currentColor;padding-bottom:2px;transition:opacity .2s ease}
+  .footer .mail:hover{opacity:.55;text-decoration:none}
+  .footer .social{position:absolute;left:1049px;top:166px;width:332px;display:flex;flex-direction:column;gap:8px}
+  .footer .social a{align-self:flex-start;position:relative;font-size:16px;line-height:18px;text-decoration:none}
+  .footer .social a::after{content:'';position:absolute;left:0;right:0;bottom:-2px;height:1px;
+                           background:currentColor;transform:scaleX(0);transform-origin:left;transition:transform .25s ease}
+  .footer .social a:hover::after{transform:scaleX(1)}
+  .footer .note{position:absolute;left:1049px;top:369px;width:332px;font-size:14px;line-height:22px;opacity:.7}
+  .footer .legal,.footer .up{position:absolute;top:506px;font-size:14px;line-height:22px}
+  .footer .legal{left:392px;opacity:.55}
+  .footer .up{left:1049px;display:inline-flex;gap:6px;text-decoration:none}
+  .footer .up i{font-style:normal;display:inline-block;transition:transform .25s ease}
+  .footer .up:hover i{transform:translateY(-3px)}
+  .footer a:hover{text-decoration:none}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="inner">
+    <a href="index-ru.html">Raily</a>
+    <div class="links">
+      <a href="kyc-case.html" class="lang" title="English version">EN</a>
+      <a href="#" target="_blank" rel="noopener">Instagram</a>
+      <a href="https://www.linkedin.com/in/ranabuvi-abdrakhmanova-339891267/" target="_blank" rel="noopener">LinkedIn</a>
+      <a href="https://www.behance.net/rinaraily" target="_blank" rel="noopener">Behance</a>
+      <a href="#" target="_blank" rel="noopener">Резюме</a>
+    </div>
+  </div>
+</header>
+
+<div class="hero">
+  <div class="hero-in">
+    <img src="assets/home/mockups/tangible.png" alt="Tangible — B2B-платформа для торговли инвестиционными фондами">
+  </div>
+</div>
+
+<div class="frame">
+  <!-- the grid spans the whole frame, footer included, so it never stops mid-page -->
+  <div class="guides">
+    <i style="left:64px"></i><i style="left:392px"></i><i style="left:721px"></i>
+    <i style="left:1049px"></i><i style="left:1377px"></i>
+  </div>
+
+  <div class="content">
+
+    <div class="cols">
+      <aside class="sidebar">
+        <a class="back" href="javascript:history.back()">&larr; Назад</a>
+        <nav class="sidenav">
+          <a href="#about">О&nbsp;проекте</a>
+          <a href="#problem">Проблема</a>
+          <a href="#research">Исследование</a>
+          <a href="#ideation">Идеи</a>
+          <a href="#solution">Решение</a>
+          <a href="#learnings">Выводы</a>
+        </nav>
+      </aside>
+
+      <main class="main">
+        <section id="about">
+          <h1>Упрощаем работу с&nbsp;KYC-документами&nbsp;— редизайн вкладки «Документы» для&nbsp;инвестиционной платформы</h1>
+          <p class="intro">В&nbsp;рамках крупной B2B-платформы для&nbsp;торговли инвестиционными фондами я&nbsp;переработала вкладку «Документы». Появились отдельный раздел KYC, сценарий одобрения и&nbsp;отклонения с&nbsp;подтверждением, трекер прогресса и&nbsp;возможность отмечать разделы завершёнными.<br>Главная сложность&nbsp;— сделать работу с&nbsp;большим объёмом документов быстрой и&nbsp;прозрачной для&nbsp;четырёх разных ролей.</p>
+          <div class="meta">
+            <div><div class="k">Роль</div><div class="v"><span>Product / UX / UI Designer</span></div></div>
+            <div><div class="k">Сроки</div><div class="v"><span>05/07/25 — 01/08/25</span></div></div>
+            <div><div class="k">Методы</div><div class="v"><span>JTBD</span><span>UIUX Design</span><span>Сompetitive analysis</span><span>Prototyping</span></div></div>
+          </div>
+        </section>
+
+        <section id="problem">
+          <div class="card problem-card">
+            <div class="label">ПРОБЛЕМА</div>
+            <h2>Платформа для&nbsp;крупных сделок&nbsp;— без&nbsp;нормального процесса проверки документов.</h2>
+            <p>На&nbsp;платформе, где банки и&nbsp;фонды проводят многомиллионные сделки, не&nbsp;было инструмента для&nbsp;KYC-документов&nbsp;— ни&nbsp;загрузки, ни&nbsp;проверки, ни&nbsp;сценария одобрения. Комплаенс и&nbsp;бэк-офис не&nbsp;могли отследить статус документов, а&nbsp;менеджеры по&nbsp;работе с&nbsp;клиентами не&nbsp;понимали, чего ещё не&nbsp;хватает. В&nbsp;таком масштабе это критичный пробел и&nbsp;в&nbsp;безопасности, и&nbsp;в&nbsp;прозрачности процесса.</p>
+          </div>
+        </section>
+
+        <section id="research" class="sect">
+          <div class="label">ИССЛЕДОВАНИЕ</div>
+          <h2>Четыре роли&nbsp;— четыре разных взгляда на&nbsp;документы</h2>
+          <p>Интервью с&nbsp;менеджерами (RM), комплаенсом и&nbsp;операционной командой показали главное: каждая роль работает с&nbsp;документами по-своему. RM мыслят задачами («что&nbsp;ещё нужно загрузить»), комплаенс&nbsp;— риском («можно&nbsp;ли это одобрить»), операционная команда следит за&nbsp;прогрессом («сколько осталось»). Разбор текущего интерфейса показал, что&nbsp;единая вкладка «Документы» не&nbsp;различала типы документов и&nbsp;никак не&nbsp;сигнализировала об&nbsp;их&nbsp;статусе.</p>
+          <div class="roles4">
+            <div class="rolecard"><img src="assets/kyc/ico-roles.svg" alt=""><div class="rt">RM</div><div class="rd">Работают с&nbsp;документами как&nbsp;с&nbsp;задачами</div></div>
+            <div class="rolecard"><img src="assets/kyc/ico-roles.svg" alt=""><div class="rt">Операционная команда</div><div class="rd">Следит за&nbsp;статусами и&nbsp;ходом процесса</div></div>
+            <div class="rolecard"><img src="assets/kyc/ico-roles.svg" alt=""><div class="rt">Комплаенс</div><div class="rd">Проверяет документы с&nbsp;точки зрения риска</div></div>
+            <div class="rolecard"><img src="assets/kyc/ico-roles.svg" alt=""><div class="rt">Бэк-офис</div><div class="rd">Участвует в&nbsp;обработке документов</div></div>
+          </div>
+        </section>
+
+        <section id="ideation" class="sect">
+          <div class="label">ИДЕИ</div>
+          <h2>Главный вопрос: как&nbsp;сделать «Одобрить» и&nbsp;«Отклонить» доступными, не&nbsp;захламляя интерфейс?</h2>
+          <p>При&nbsp;большом объёме документов интерфейс не&nbsp;должен превращаться в&nbsp;бесконечный список кнопок. При&nbsp;этом ключевые действия обязаны оставаться под&nbsp;рукой. Мы&nbsp;перебрали несколько подходов.</p>
+
+          <div class="label sublabel">Отклонённые решения</div>
+          <div class="card carousel">
+            <div class="hyp" id="hypTitle">Гипотеза 1</div>
+            <img class="shot" id="hypShot" src="assets/kyc/hyp-1.png" alt="Скриншот отклонённого решения">
+            <button class="car-btn prev" aria-label="Назад" onclick="hyp(-1)"><svg viewBox="0 0 16 16"><path d="M10 3 L5 8 l5 5"/></svg></button>
+            <button class="car-btn next" aria-label="Вперёд" onclick="hyp(1)"><svg viewBox="0 0 16 16"><path d="M6 3 L11 8 l-5 5"/></svg></button>
+            <p class="cap" id="hypCap"><b>Оба действия рядом с&nbsp;каждым документом</b>В&nbsp;масштабе интерфейс быстро захламлялся. К&nbsp;тому&nbsp;же «Отклонить»&nbsp;— разрушающее действие, и&nbsp;оно не&nbsp;должно весить столько&nbsp;же, сколько «Одобрить».</p>
+          </div>
+        </section>
+
+        <section id="solution" class="sect">
+          <div class="label">РЕШЕНИЕ</div>
+          <p class="solution-intro"><b style="font-weight:400;display:block">Прозрачный документооборот, где понятны роли и&nbsp;виден прогресс</b>Вкладка «Документы» стала цельной благодаря набору связанных улучшений.</p>
+          <div class="sol-grid">
+            <p><span class="lead">Колонка «KYC»</span>В&nbsp;таблице листингов&nbsp;— статус «Есть / Нет» виден сразу, без&nbsp;открытия каждого фонда.</p>
+            <p><span class="lead">Раздел «KYC-документы»</span>Отдельный раздел внутри листинга, над&nbsp;закрывающими документами. Перезагружать документы могут только RM.</p>
+            <p><span class="lead">Сценарий «Одобрить / Отклонить»</span>Одобрение&nbsp;— через модальное окно с&nbsp;подтверждением; отклонение&nbsp;— через меню с&nbsp;тремя точками, причина показывается в&nbsp;подсказке и&nbsp;в&nbsp;окне загрузки.</p>
+            <p><span class="lead">Прогресс и&nbsp;«Отметить завершённым»</span>Счётчик вида «3/12» показывает прогресс внутри каждого раздела. Кнопка завершения с&nbsp;индикатором позволяет отметить раздел готовым.</p>
+          </div>
+          <div class="card proto-card">
+            <div class="proto-frame">
+              <iframe src="tangible-documents.html" title="Прототип вкладки «Документы» — одобрение, отклонение и удаление KYC-документов"></iframe>
+            </div>
+          </div>
+          <div class="solution-note">
+            <p><span style="display:block">«Одобрить»&nbsp;— основное действие, «Отклонить»&nbsp;— в&nbsp;меню с&nbsp;тремя точками</span>Одобрить можно в&nbsp;один клик прямо на&nbsp;карточке документа. Отклонение убрано во&nbsp;вторичное меню&nbsp;— это снижает риск случайного нажатия и&nbsp;подчёркивает серьёзность действия.</p>
+            <p>Причина отклонения: коротко&nbsp;— в&nbsp;подсказке на&nbsp;карточке, полностью&nbsp;— в&nbsp;окне загрузки при&nbsp;отправке нового документа.</p>
+          </div>
+        </section>
+
+        <section class="results">
+          <div class="label">РЕЗУЛЬТАТЫ</div>
+          <div class="cards3">
+            <div class="rcard"><img src="assets/kyc/ico-launched.svg" alt=""><div class="t">Функция запущена и&nbsp;используется.</div></div>
+            <div class="rcard"><img src="assets/kyc/ico-compliance.svg" alt=""><div class="t">Комплаенс получил прозрачный инструмент&nbsp;проверки.</div></div>
+            <div class="rcard"><img src="assets/kyc/ico-statuses.svg" alt=""><div class="t">RM видят статусы документов без&nbsp;лишних переходов</div></div>
+          </div>
+        </section>
+
+        <section id="learnings" class="learnings">
+          <div class="label">ВЫВОДЫ</div>
+          <div class="lcols">
+            <div><p><span style="display:block">Иерархия действий важна&nbsp;— особенно там, где высока цена ошибки</span>Когда цена ошибки высока, разрушающие действия должны требовать больше усилий. Спрятать «Отклонить» в&nbsp;меню&nbsp;— не&nbsp;ограничение, а&nbsp;намеренная защита от&nbsp;случайных кликов.</p></div>
+            <div><p><span style="display:block">Роли определяют архитектуру, а&nbsp;не&nbsp;только доступ</span>Разные роли не&nbsp;просто видят разные кнопки&nbsp;— они по-разному думают о&nbsp;задаче. Понять это в&nbsp;интервью до&nbsp;начала дизайна сэкономило несколько итераций.</p></div>
+            <div><p><span style="display:block">Плотный контент требует постепенного раскрытия</span>Подсказка с&nbsp;причиной отклонения плюс полный текст в&nbsp;модальном окне&nbsp;— не&nbsp;дублирование, а&nbsp;два разных сценария для&nbsp;одной и&nbsp;той&nbsp;же информации.</p></div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <footer class="footer" id="contact">
+    <p class="who">Рина Абдрахманова<br><i>UI/ UX /Product Designer</i></p>
+    <a class="all" href="index-ru.html">&larr; Все кейсы</a>
+
+    <h2 class="ask">Есть проект<br>на&nbsp;примете?</h2>
+    <p class="say">Давайте обсудим.</p>
+    <a class="mail" href="mailto:ranabuvia@gmail.com">ranabuvia@gmail.com</a>
+
+    <nav class="social" aria-label="Соцсети">
+      <a href="#" target="_blank" rel="noopener">Instagram</a>
+      <a href="https://www.linkedin.com/in/ranabuvi-abdrakhmanova-339891267/" target="_blank" rel="noopener">LinkedIn</a>
+      <a href="https://www.behance.net/rinaraily" target="_blank" rel="noopener">Behance</a>
+      <a href="#" target="_blank" rel="noopener">Резюме</a>
+    </nav>
+    <p class="note">Живу в&nbsp;Алматы, работаю с&nbsp;командами по&nbsp;всему миру. Открыта для&nbsp;продуктовых задач&nbsp;— B2B SaaS, IoT и&nbsp;финтех.</p>
+
+    <p class="legal">© 2026 Рина Абдрахманова</p>
+    <a class="up" href="#" onclick="window.scrollTo({top:0,behavior:'smooth'});return false">Наверх <i>↑</i></a>
+  </footer>
+
+</div>
+<script>
+  // rejected-solutions carousel (Hypothesis 1-3, from Figma frames 104:14867 / 108:12294 / 108:12303)
+  const HYPS = [
+    {title:'Hypothesis 1', img:'assets/kyc/hyp-1.png',
+     head:'Both actions next to each document',
+     cap:'At scale, the interface quickly became cluttered. Reject, as a destructive action, shouldn’t carry the same weight as Approve.'},
+    {title:'Hypothesis 2', img:'assets/kyc/hyp-2.png',
+     head:'Both actions inside a modal',
+     cap:'Requiring an extra step for approval creates friction when handling multiple documents in a row.'},
+    {title:'Hypothesis 3', img:'assets/kyc/hyp-3.png',
+     head:'Placing all actions on the document card',
+     cap:'Cards became bulky and visually overwhelming, making it difficult to quickly grasp document statuses.'}
+  ];
+  HYPS.forEach(h => { const i = new Image(); i.src = h.img; });
+  let hypIdx = 0;
+  function hyp(dir){
+    hypIdx = (hypIdx + dir + HYPS.length) % HYPS.length;
+    const c = document.querySelector('.carousel');
+    c.classList.add('switching');
+    setTimeout(()=>{
+      const h = HYPS[hypIdx];
+      document.getElementById('hypTitle').textContent = h.title;
+      document.getElementById('hypShot').src = h.img;
+      document.getElementById('hypCap').innerHTML = '<b>' + h.head + '</b>' + h.cap;
+      c.classList.remove('switching');
+    }, 220);
+  }
+</script>
+<script>
+  /* The menu is fixed, so it has to switch from white to black the moment it stops sitting
+     over the hero image. Measured off the hero's own position rather than a hard-coded
+     height, so it survives the 1.2 zoom at 1920. */
+  (function(){
+    const hero = document.querySelector('.hero');
+    if (!hero) return;
+    const onScroll = () => {
+      document.body.classList.toggle('scrolled', hero.getBoundingClientRect().bottom < 80);
+    };
+    addEventListener('scroll', onScroll, { passive: true });
+    addEventListener('resize', onScroll);
+    onScroll();
+  })();
+</script>
+<script src="assets/reveal.js"></script>
+</body>
+</html>
