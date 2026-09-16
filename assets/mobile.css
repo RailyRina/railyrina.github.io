@@ -40,7 +40,7 @@
   .home .case .inner{width:100%;padding:0}
   .home .case h2,.home .case .kind,.home .case .desc{position:static;width:100%}
   /* the card unfolds: the "Open case" label comes first, right under the description, then the cover */
-  .home .case .media{position:relative;left:auto;top:auto;width:100%;display:flex;flex-direction:column;
+  .home .case .media{position:relative;left:auto;top:auto;width:100%;display:flex;flex-direction:column;align-items:flex-start;
                      height:auto;padding:0;background:none;overflow:visible;border-radius:0}
   .home .case .media .cover{position:relative;inset:auto;width:100%;height:auto;aspect-ratio:985/473;
                             border-radius:8px;background:var(--card,#e4e4e4)}
