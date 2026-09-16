@@ -65,7 +65,7 @@
            .forEach((el, i) => { el.style.animationDelay = Math.min(i * 70, 420) + 'ms'; el.classList.add('in'); });
       batch = [];
     }, 16);
-  }, { threshold: 0, rootMargin: '0px 0px -8% 0px' }   // fires once the block crosses a line 8% up from the bottom edge);
+  }, { threshold: 0, rootMargin: '0px 0px -8% 0px' });   // fires once the block crosses a line 8% up from the bottom edge
 
   els.forEach(el => io.observe(el));
 })();
