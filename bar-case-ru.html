@@ -1359,6 +1359,7 @@
         btn.classList.remove('away');
         slot.classList.remove('playing');               // phone drops back to its idle rest
       }, t0 + 6950);
+      later(() => play(true), t0 + 6950 + 2600);        // ...and it loops: the card lingers, then the shake starts over
     }
 
     function play(fromShake){
@@ -1376,6 +1377,8 @@
     btn.addEventListener('click', () => play(true));
     // the bottle icon is the in-app entry point — it skips the shake
     document.getElementById('spinFabs').addEventListener('click', () => play(false));
+    // starts on its own the first time the block scrolls into view
+    new IntersectionObserver((es, io) => { if (es.some(e => e.isIntersecting)) { io.disconnect(); play(true); } }, { threshold: .3 }).observe(slot);
   })();
 
   /* ---- research samples: only run while the grid is on screen ----

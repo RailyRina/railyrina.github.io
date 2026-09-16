@@ -722,5 +722,31 @@ buildKeypad();
 sync();
 </script>
 <script>if(location.search.includes("embed=1"))document.body.classList.add("embed");</script>
+<script>
+  /* ?auto=1 — plays the set-up flow on its own and loops; a touch hands over to the visitor */
+  if (location.search.includes('auto=1')) (function(){
+    let t=[]; const at=(ms,fn)=>t.push(setTimeout(fn,ms)); const stop=()=>{t.forEach(clearTimeout);t=[];};
+    const keys=(digits,start,step)=>{ digits.forEach((d,i)=>at(start+i*step, ()=>pressKey(d))); return start+digits.length*step; };
+    function run(){
+      stop(); restartDemo();
+      let ms=1600;
+      at(ms, showCreate);                    ms+=1400;
+      at(ms, ()=>openSheet(0,'sum'));        ms+=700; ms=keys([5,0,0,0],ms,260);   ms+=500;
+      at(ms, ()=>closeSheet());              ms+=600;
+      at(ms, ()=>openSheet(0,'pct'));        ms+=700; ms=keys([5],ms,260);         ms+=500;
+      at(ms, ()=>closeSheet());              ms+=800;
+      at(ms, addLevel);                      ms+=800;
+      at(ms, ()=>openSheet(1,'sum'));        ms+=700; ms=keys([2,0,0,0,0],ms,240); ms+=500;
+      at(ms, ()=>closeSheet());              ms+=600;
+      at(ms, ()=>openSheet(1,'pct'));        ms+=700; ms=keys([1,0],ms,260);       ms+=500;
+      at(ms, ()=>closeSheet());              ms+=1000;
+      at(ms, createProgram);                 ms+=1800;
+      at(ms, refreshCards);                  ms+=4200;
+      at(ms, run);
+    }
+    run();
+    document.querySelector('.phone').addEventListener('pointerdown', stop, { once:true });
+  })();
+</script>
 </body>
 </html>

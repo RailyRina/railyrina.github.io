@@ -428,5 +428,31 @@
 
   renderDocs();
 </script>
+<script>
+  /* ?auto=1 — approves, rejects and bulk-approves on its own, then resets and loops */
+  if (location.search.includes('auto=1')) (function(){
+    const INITIAL = JSON.parse(JSON.stringify(docs));
+    const REASON = 'Please review the requirements and re-upload the correct version.';
+    let t=[]; const at=(ms,fn)=>t.push(setTimeout(fn,ms)); const stop=()=>{t.forEach(clearTimeout);t=[];};
+    function run(){
+      stop(); closeMasks(); docs = JSON.parse(JSON.stringify(INITIAL)); tab='needs'; renderDocs();
+      let ms=1800;
+      at(ms, ()=>openApprove(docs.indexOf(docs.find(d=>d.s==='needs'))));                        ms+=1600;
+      at(ms, confirmApprove);                                                                     ms+=1800;
+      at(ms, ()=>{ const b=document.querySelectorAll('#docGrid .icon-btn.menu')[1]; if(b) b.click(); }); ms+=1100;
+      at(ms, ()=>ddAction('reject'));                                                             ms+=900;
+      REASON.split('').forEach((ch,i)=>at(ms+i*28, ()=>{ document.getElementById('rejectNote').value += ch; }));
+      ms+=REASON.length*28+700;
+      at(ms, confirmReject);                                                                      ms+=1800;
+      at(ms, ()=>{ tab='rejected'; renderDocs(); });                                               ms+=2200;
+      at(ms, ()=>{ tab='needs'; renderDocs(); });                                                  ms+=1400;
+      at(ms, openApproveAll);                                                                     ms+=1600;
+      at(ms, confirmApproveAll);                                                                  ms+=3200;
+      at(ms, run);
+    }
+    run();
+    document.body.addEventListener('pointerdown', stop, { once:true });
+  })();
+</script>
 </body>
 </html>

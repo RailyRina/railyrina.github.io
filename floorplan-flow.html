@@ -819,6 +819,26 @@
     document.querySelectorAll('.tbl .cbx').forEach(c=>c.classList.remove('on'));
     go('scr-tm');
   }
+  /* ?auto=1 — the Solution embed plays the whole flow on its own and loops; a touch hands over */
+  if (new URLSearchParams(location.search).has('auto')) (function(){
+    let t=[]; const at=(ms,fn)=>t.push(setTimeout(fn,ms)); const stop=()=>{t.forEach(clearTimeout);t=[];};
+    function run(){
+      stop(); restart();
+      let ms=1600;
+      at(ms, ()=>openOv('ov-generate'));                            ms+=1600;
+      at(ms, ()=>{ closeOv('ov-generate'); go('scr-rearrange'); });  ms+=1500;
+      at(ms, ()=>openOv('ov-source'));                              ms+=1200;
+      at(ms, pickSource);                                           ms+=1600+1500;   // upload overlay runs 1.6s
+      at(ms, openChoose);                                           ms+=1200;
+      at(ms, ()=>selectArea(0,'main'));                             ms+=800;
+      at(ms, ()=>selectArea(1,'out'));                              ms+=1000;
+      at(ms, analyze);                                              ms+=12800+2600;  // scan 12.8s, then linger in the editor
+      at(ms, ()=>toast('Floorplan saved'));                         ms+=1800;
+      at(ms, run);
+    }
+    run();
+    document.getElementById('phone').addEventListener('pointerdown', stop, { once:true });
+  })();
 </script>
 </body>
 </html>
