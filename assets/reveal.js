@@ -9,7 +9,11 @@
   style.textContent =
     '.rv{opacity:0}' +
     '.rv.in{animation:rvUp .75s cubic-bezier(.22,1,.36,1) both}' +
-    '@keyframes rvUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}';
+    '@keyframes rvUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}' +
+    // word-by-word for the headings that are on screen at load: each word rises .4em with a 40ms stagger
+    '.rv-words .rw{display:inline-block;opacity:0}' +
+    '.rv-words.in .rw{animation:rvWord .6s cubic-bezier(.22,1,.36,1) both}' +
+    '@keyframes rvWord{from{opacity:0;transform:translateY(.4em)}to{opacity:1;transform:none}}';
   document.head.appendChild(style);
 
   const isHome = !!document.querySelector('main > .case');
@@ -22,10 +26,30 @@
   // things that animate on their own or hold live prototypes — leave them be
   const SKIP = '.carousel, .stage, [class*="-stage"], .rating, .stars, .idea-strip, .proto-wrap, .solution-card, .video, iframe';
 
-  let els = [...document.querySelectorAll(SEL)].filter(el => !el.closest(SKIP));
+  // headings that greet the visitor get the word-by-word treatment instead of a block fade
+  const WORDS = isHome ? '.brand .txt, .intro' : '.main h1';
+  document.querySelectorAll(WORDS).forEach(el => {
+    const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT); const nodes = [];
+    while (walker.nextNode()) if (walker.currentNode.nodeValue.trim()) nodes.push(walker.currentNode);
+    let i = 0;
+    nodes.forEach(n => {
+      const frag = document.createDocumentFragment();
+      n.nodeValue.split(/(\s+)/).forEach(part => {
+        if (!part) return;
+        if (/^\s+$/.test(part)) { frag.appendChild(document.createTextNode(part)); return; }
+        const w = document.createElement('span'); w.className = 'rw'; w.textContent = part;
+        w.style.animationDelay = (i++ * 40) + 'ms'; frag.appendChild(w);
+      });
+      n.parentNode.replaceChild(frag, n);
+    });
+    el.classList.add('rv-words');
+  });
+
+  let els = [...document.querySelectorAll(SEL)].filter(el => !el.closest(SKIP) && !el.classList.contains('rv-words'));
   // if a parent is in the set, its children ride along — don't animate them twice
   els = els.filter(el => !els.some(o => o !== el && o.contains(el)));
   els.forEach(el => el.classList.add('rv'));
+  els = els.concat([...document.querySelectorAll('.rv-words')]);   // observed like the rest; .in fires the words
 
   let batch = [], flush = null;
   const io = new IntersectionObserver(entries => {
