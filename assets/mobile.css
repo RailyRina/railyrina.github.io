@@ -39,12 +39,16 @@
   .home .case{position:relative;height:auto;min-height:0;display:block;padding:72px 20px 56px;box-shadow:none}
   .home .case .inner{width:100%;padding:0}
   .home .case h2,.home .case .kind,.home .case .desc{position:static;width:100%}
-  .home .case .media{position:relative;left:auto;top:auto;width:100%}   /* stays the containing block for its absolute cover */
+  /* the card unfolds: the "Open case" label comes first, right under the description, then the cover */
+  .home .case .media{position:relative;left:auto;top:auto;width:100%;display:flex;flex-direction:column;
+                     height:auto;padding:0;background:none;overflow:visible;border-radius:0}
+  .home .case .media .cover{position:relative;inset:auto;width:100%;height:auto;aspect-ratio:985/473;
+                            border-radius:8px;background:var(--card,#e4e4e4)}
   .home .case h2{font-size:28px;line-height:32px}
   .home .case .kind{margin-top:10px;font-size:16px;line-height:20px}
   .home .case .desc{margin-top:8px;font-size:16px;line-height:20px}
-  .home .case .media{margin-top:24px;height:auto;aspect-ratio:985/473;padding:16px}
-  .home .case .media .open{display:none}   /* no hover on touch; the whole card is the link and the label would sit on the mockup */
+  .home .case .media{margin-top:0}
+  .home .case .media .open{order:-1;margin:12px 0 20px;opacity:1;transform:none;font-size:16px;line-height:20px}
 
   .home .footer{height:auto;display:block;padding:64px 20px 32px}
   .home .footer .inner{width:100%;padding:0}
@@ -68,7 +72,7 @@
   .content{padding:24px 20px 64px}
   .cols{display:block}
   .sidebar{width:auto;margin:0}
-  .sidenav{position:static;margin-top:14px;flex-direction:row;flex-wrap:wrap;gap:8px 18px}
+  .sidenav{display:none}   /* section menu is desktop-only; the page is one short scroll on a phone */
   .main{width:auto;margin:32px 0 0}
 
   h1{font-size:28px;line-height:32px;max-width:none}
