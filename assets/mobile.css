@@ -44,7 +44,7 @@
   .home .case .kind{margin-top:10px;font-size:16px;line-height:20px}
   .home .case .desc{margin-top:8px;font-size:16px;line-height:20px}
   .home .case .media{margin-top:24px;height:auto;aspect-ratio:985/473;padding:16px}
-  .home .case .media .open{opacity:.55;transform:none}   /* no hover on touch — keep the label visible */
+  .home .case .media .open{display:none}   /* no hover on touch; the whole card is the link and the label would sit on the mockup */
 
   .home .footer{height:auto;display:block;padding:64px 20px 32px}
   .home .footer .inner{width:100%;padding:0}
