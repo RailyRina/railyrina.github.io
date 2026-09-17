@@ -2,3 +2,6 @@
 assets/home/heroBg-old.jpg
 Thumbs.db
 .DS_Store
+
+# source art for the cursors, not served
+Cursors/
