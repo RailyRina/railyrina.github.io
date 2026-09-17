@@ -238,9 +238,12 @@
   body.embed{overflow:hidden}
   /* Figma 89:15778: 1px black frame, r23 at the 0.594 display scale — 2px / r39 at 1x (Chrome snaps 1.7 down to 1), no shadow */
   body.embed .phone{box-shadow:none;border:2px solid #000;border-radius:39px}
+  html.embedded, html.embedded body, html.embedded *{scrollbar-width:none;-ms-overflow-style:none}
+  html.embedded ::-webkit-scrollbar{display:none;width:0;height:0}
 </style>
 </head>
 <body>
+<script>if (window.self !== window.top) document.documentElement.classList.add("embedded");</script>
 
 <!-- ======== shared SVG defs ======== -->
 <svg width="0" height="0" style="position:absolute">
