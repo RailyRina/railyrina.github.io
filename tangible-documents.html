@@ -28,7 +28,8 @@
 
   /* ---------- top bar ---------- */
   .topbar{height:80px;display:flex;align-items:center;padding:0 48px;border-bottom:1px solid var(--border)}
-  .logo{width:84px;height:34px;border:2px solid var(--ink);background:repeating-linear-gradient(135deg,transparent 0 4px,rgba(0,0,0,.08) 4px 6px)}   /* NDA: hatched blank where the wordmark was */
+  .logo{position:relative;width:34px;height:34px;border-radius:9px;background:var(--ink)}   /* NDA: a neutral mark where the wordmark was */
+  .logo::after{content:"";position:absolute;inset:32%;background:#fff;border-radius:3px}
   .topnav{margin-left:auto;display:flex;gap:32px;font-weight:500}
   .topnav a{color:var(--gray2);text-decoration:none;padding-bottom:6px}
   .topnav a.active{color:var(--green);border-bottom:2px solid var(--green)}
