@@ -1,5 +1,5 @@
 /* Text reveal: blocks fade in and rise 18px as they enter the viewport, siblings that arrive
-   together cascade 70ms apart. Runs once per element. Uses an animation rather than a
+   together cascade 70ms apart. Runs once per element. The state class is rv-in, not in — the home page already uses .in for its column wrappers, and a bare in would hand them 60px of padding. Uses an animation rather than a
    transition so it never clobbers the transitions elements already carry (the docked name,
    the case cards, the carousel caption). Off entirely under prefers-reduced-motion. */
 (function () {
@@ -8,11 +8,11 @@
   const style = document.createElement('style');
   style.textContent =
     '.rv{opacity:0}' +
-    '.rv.in{animation:rvUp .75s cubic-bezier(.22,1,.36,1) both}' +
+    '.rv.rv-in{animation:rvUp .75s cubic-bezier(.22,1,.36,1) both}' +
     '@keyframes rvUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}' +
     // word-by-word for the headings that are on screen at load: each word rises .4em with a 40ms stagger
     '.rv-words .rw{display:inline-block;opacity:0}' +
-    '.rv-words.in .rw{animation:rvWord .6s cubic-bezier(.22,1,.36,1) both}' +
+    '.rv-words.rv-in .rw{animation:rvWord .6s cubic-bezier(.22,1,.36,1) both}' +
     '@keyframes rvWord{from{opacity:0;transform:translateY(.4em)}to{opacity:1;transform:none}}';
   document.head.appendChild(style);
 
@@ -49,7 +49,7 @@
   // if a parent is in the set, its children ride along — don't animate them twice
   els = els.filter(el => !els.some(o => o !== el && o.contains(el)));
   els.forEach(el => el.classList.add('rv'));
-  els = els.concat([...document.querySelectorAll('.rv-words')]);   // observed like the rest; .in fires the words
+  els = els.concat([...document.querySelectorAll('.rv-words')]);   // observed like the rest; .rv-in fires the words
 
   let batch = [], flush = null;
   const io = new IntersectionObserver(entries => {
@@ -62,7 +62,7 @@
     clearTimeout(flush);
     flush = setTimeout(() => {
       batch.sort((a, b) => a.getBoundingClientRect().top - b.getBoundingClientRect().top)
-           .forEach((el, i) => { el.style.animationDelay = Math.min(i * 70, 420) + 'ms'; el.classList.add('in'); });
+           .forEach((el, i) => { el.style.animationDelay = Math.min(i * 70, 420) + 'ms'; el.classList.add('rv-in'); });
       batch = [];
     }, 16);
   }, { threshold: 0, rootMargin: '0px 0px -8% 0px' });   // fires once the block crosses a line 8% up from the bottom edge
