@@ -11,6 +11,7 @@
   .topbar .inner{width:100%;padding:0 20px}
   .topbar a{font-size:14px;line-height:20px}
   .topbar .links{gap:14px}
+  .topbar .links .tg{display:none}   /* six links don't fit at 375; Telegram is still in the footer */
 
   /* =================================================================
      HOME
