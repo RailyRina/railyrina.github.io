@@ -65,8 +65,9 @@
 
   /* the index of cases, pinned bottom-left on the hero and tucked under the name after */
   .worklist{position:fixed;z-index:55;left:0;right:0;top:80.2vh;
-            display:flex;justify-content:center;
+            display:flex;justify-content:center;pointer-events:none;   /* the band spans the screen and would sit on the video controls */
             transition:top .7s cubic-bezier(.22,1,.36,1)}
+  .worklist a{pointer-events:auto}
   .worklist .in{width:calc(var(--canvas) * var(--k));padding:0 var(--gutter);color:#fff;
                 transition:color .45s ease}
   /* the hero sits it on the first grid line (64), 4px in from the gutter; docking pulls it flush */
@@ -312,7 +313,7 @@
         </svg>
       </button>
       <div class="plate" id="vPlate">
-        <video id="vid" src="assets/home/video/intro-ru.mp4" poster="assets/home/photo.png" playsinline loop preload="metadata"></video>
+        <video id="vid" src="assets/home/video/intro-ru.mp4" poster="assets/home/photo.png" playsinline loop muted preload="metadata"></video>
         <div class="vc">
           <button class="vb" id="vPlay" aria-label="Пауза">
             <svg class="on" viewBox="0 0 12 12"><path d="M2.5 1.5h2.5v9H2.5zM7 1.5h2.5v9H7z"/></svg>
@@ -451,9 +452,9 @@
         bFull = document.getElementById('vFull'), vol = document.getElementById('vVol'),
         prog = document.getElementById('vProg').firstElementChild;
 
-  // starts with sound if the browser allows it; otherwise muted, and the speaker button turns it on
-  vid.muted = false;
-  vid.play().catch(() => { vid.muted = true; vid.play().catch(() => {}); });
+  // starts muted; the speaker button (or expanding) turns the sound on
+  vid.muted = true;
+  vid.play().catch(() => {});
 
   const syncPlay = () => bPlay.classList.toggle('is-off', vid.paused);
   const syncSound = () => {
@@ -492,10 +493,12 @@
     userPaused = false; vid.play().catch(() => {});
   }
   function collapse() {
+    const wasPlaying = !vid.paused;   // moving the element in the DOM pauses it
     box.appendChild(plate);
     full.classList.remove('on'); full.setAttribute('aria-hidden', 'true');
     document.body.classList.remove('vlock');
     bFull.classList.remove('is-off');
+    if (wasPlaying) vid.play().catch(() => {});
   }
   bFull.addEventListener('click', () => isFull() ? collapse() : expand());
   document.getElementById('vClose').addEventListener('click', collapse);
