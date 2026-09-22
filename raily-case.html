@@ -130,6 +130,13 @@
   .lcols{margin-top:20px;display:flex;gap:48px}
   .lcols>div{width:280px}
   .lcols p+p{margin-top:0}
+
+  /* credits: the people the project was made with, last thing before the footer */
+  .credits{margin-top:52px;padding-top:24px;border-top:1px solid var(--line);max-width:608px}
+  .credits p{margin-top:12px;color:var(--gray)}
+  .credits a{color:var(--ink);text-decoration:underline;text-underline-offset:3px;
+             transition:opacity .2s ease}
+  .credits a:hover{opacity:.55}
   /* ---------- footer ----------
      Same footer as the home page. There the left column is taken by the docked name and
      index; here nothing is fixed, so the name sits in that column itself, with a way back. */
@@ -274,6 +281,11 @@
             <div><p>Simplicity vs. functionality is a constant balancing act.<br>The floor plan had to be flexible enough to handle real-world, non-standard configurations, yet simple enough for staff to use without training. Every added feature was carefully validated for necessity.</p></div>
             <div><p>Testing with real users changes everything.<br>Restaurant staff work under constant pressure and time constraints. Usability tests with real staff revealed patterns that are impossible to predict during the design phase.</p></div>
           </div>
+        </section>
+
+        <section class="credits">
+          <div class="label">THANKS</div>
+          <p>Made together with <a href="https://www.linkedin.com/in/anton-stupnev-61297b94/" target="_blank" rel="noopener">Anton Stupnev</a> and the team at <a href="https://www.not2much.com/" target="_blank" rel="noopener">N2M</a>.</p>
         </section>
       </main>
     </div>
